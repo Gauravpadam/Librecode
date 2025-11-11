@@ -24,23 +24,23 @@ frontend-build:
 
 docker-build:
 	@echo "Building Docker execution images..."
-	docker build -t localcode-java:latest -f docker/Dockerfile.java docker/
-	docker build -t localcode-python:latest -f docker/Dockerfile.python docker/
-	docker build -t localcode-javascript:latest -f docker/Dockerfile.javascript docker/
+	podman build -t localcode-java:latest -f docker/Dockerfile.java docker/
+	podman build -t localcode-python:latest -f docker/Dockerfile.python docker/
+	podman build -t localcode-javascript:latest -f docker/Dockerfile.javascript docker/
 
 start:
 	@echo "Starting LocalCode services..."
-	docker-compose up -d
+	podman compose -f ./docker-compose.yml up
 
 stop:
 	@echo "Stopping LocalCode services..."
-	docker-compose down
+	podman compose -f ./docker-compose.yml down
 
 clean:
 	@echo "Cleaning build artifacts..."
 	cd backend && mvn clean
 	cd frontend && rm -rf dist node_modules
-	docker-compose down -v
+	podman compose down -v
 
 logs:
 	docker-compose logs -f
