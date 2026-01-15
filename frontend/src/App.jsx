@@ -10,6 +10,7 @@ import ProblemDetail from './pages/ProblemDetail';
 import SubmissionHistory from './pages/SubmissionHistory';
 import SubmissionDetail from './pages/SubmissionDetail';
 import Dashboard from './pages/Dashboard';
+import ComponentShowcase from './pages/ComponentShowcase';
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route path="showcase" element={<ComponentShowcase />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

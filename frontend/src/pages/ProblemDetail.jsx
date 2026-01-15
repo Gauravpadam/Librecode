@@ -4,6 +4,7 @@ import { api } from '../contexts/AuthContext';
 import { API_ENDPOINTS } from '../config/api';
 import Editor from '@monaco-editor/react';
 import TestCaseManager from '../components/TestCaseManager';
+import { defineLocalcodeTheme } from '../styles/editor-theme';
 
 function ProblemDetail() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ function ProblemDetail() {
   const [isDragging, setIsDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
-  const [theme, setTheme] = useState('vs-dark');
+  const [theme, setTheme] = useState('localcode-dark');
   const [activeTab, setActiveTab] = useState('description'); // 'description' or 'testcases'
 
   // Language configurations
@@ -170,31 +171,31 @@ function ProblemDetail() {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
       case 'easy':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-900/30 text-emerald-400 border border-emerald-700';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-amber-900/30 text-amber-400 border border-amber-700';
       case 'hard':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-900/30 text-red-400 border border-red-700';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-800 text-slate-400 border border-slate-700';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'accepted':
-        return 'text-green-600';
+        return 'text-emerald-400';
       case 'wrong_answer':
-        return 'text-red-600';
+        return 'text-red-400';
       case 'time_limit_exceeded':
-        return 'text-orange-600';
+        return 'text-amber-400';
       case 'memory_limit_exceeded':
-        return 'text-purple-600';
+        return 'text-purple-400';
       case 'compilation_error':
       case 'runtime_error':
-        return 'text-red-600';
+        return 'text-red-400';
       default:
-        return 'text-gray-600';
+        return 'text-slate-400';
     }
   };
 
@@ -204,38 +205,40 @@ function ProblemDetail() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-lg text-gray-600">Loading problem...</div>
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-lg text-slate-400">Loading problem...</div>
       </div>
     );
   }
 
   if (error && !problem) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card bg-red-50 border border-red-200">
-          <p className="text-red-800">{error}</p>
-          <button onClick={() => navigate('/problems')} className="btn-primary mt-4">
-            Back to Problems
-          </button>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-6">
+            <p className="text-red-400">{error}</p>
+            <button onClick={() => navigate('/problems')} className="btn-primary mt-4">
+              Back to Problems
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="bg-slate-850 border-b border-slate-700 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/problems')}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-slate-400 hover:text-primary transition-colors"
             >
               ← Back
             </button>
-            <h1 className="text-xl font-bold">{problem?.title}</h1>
+            <h1 className="text-xl font-bold text-slate-50">{problem?.title}</h1>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(problem?.difficulty)}`}>
               {problem?.difficulty}
             </span>
@@ -244,17 +247,17 @@ function ProblemDetail() {
             <select
               value={selectedLanguage}
               onChange={handleLanguageChange}
-              className="input-field py-1.5"
+              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               {languages.map(lang => (
                 <option key={lang.value} value={lang.value}>{lang.label}</option>
               ))}
             </select>
             <button
-              onClick={() => setTheme(theme === 'vs-dark' ? 'light' : 'vs-dark')}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              onClick={() => setTheme(theme === 'localcode-dark' ? 'vs-dark' : 'localcode-dark')}
+              className="px-3 py-1.5 text-sm border border-slate-700 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors"
             >
-              {theme === 'vs-dark' ? '☀️ Light' : '🌙 Dark'}
+              {theme === 'localcode-dark' ? '☀️ Light' : '🌙 Dark'}
             </button>
             <button
               onClick={handleSubmit}
@@ -275,27 +278,27 @@ function ProblemDetail() {
       >
         {/* Left Panel - Problem Description and Test Cases */}
         <div
-          className="flex flex-col overflow-hidden bg-white border-r border-gray-200"
+          className="flex flex-col overflow-hidden bg-background border-r border-slate-700"
           style={{ width: `${splitPosition}%` }}
         >
           {/* Tabs */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-slate-700 bg-slate-850">
             <button
               onClick={() => setActiveTab('description')}
-              className={`px-6 py-3 font-medium text-sm ${
+              className={`px-6 py-3 font-medium text-sm transition-colors ${
                 activeTab === 'description'
-                  ? 'border-b-2 border-primary-500 text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Description
             </button>
             <button
               onClick={() => setActiveTab('testcases')}
-              className={`px-6 py-3 font-medium text-sm ${
+              className={`px-6 py-3 font-medium text-sm transition-colors ${
                 activeTab === 'testcases'
-                  ? 'border-b-2 border-primary-500 text-primary-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Test Cases
@@ -303,49 +306,57 @@ function ProblemDetail() {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-background">
             {activeTab === 'description' ? (
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">{problem?.title}</h2>
+              <div className="p-6 text-textLight">
+                <h2 className="text-3xl font-bold mb-6 text-slate-50">{problem?.title}</h2>
                 
                 {/* Description */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <div className="text-gray-700 whitespace-pre-wrap">{problem?.description}</div>
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-3 text-slate-100">Description</h3>
+                  <div className="text-slate-300 whitespace-pre-wrap leading-relaxed">{problem?.description}</div>
                 </div>
 
                 {/* Constraints */}
                 {problem?.constraints && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Constraints</h3>
-                    <div className="text-gray-700 whitespace-pre-wrap">{problem?.constraints}</div>
+                  <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-3 text-slate-100">Constraints</h3>
+                    <div className="text-slate-300 whitespace-pre-wrap leading-relaxed font-mono text-sm bg-slate-850 p-4 rounded-lg border border-slate-700">{problem?.constraints}</div>
                   </div>
                 )}
 
                 {/* Time and Memory Limits */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">Limits</h3>
-                  <div className="text-gray-700">
-                    <p>Time Limit: {problem?.timeLimitMs}ms</p>
-                    <p>Memory Limit: {problem?.memoryLimitMb}MB</p>
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-3 text-slate-100">Limits</h3>
+                  <div className="text-slate-300 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-200">Time Limit:</span>
+                      <span className="font-mono text-primary">{problem?.timeLimitMs}ms</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-200">Memory Limit:</span>
+                      <span className="font-mono text-primary">{problem?.memoryLimitMb}MB</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Example Test Cases */}
                 {testCases.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Example Test Cases</h3>
+                  <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-3 text-slate-100">Examples</h3>
                     <div className="space-y-4">
                       {testCases.filter(tc => tc.isSample).map((testCase, index) => (
-                        <div key={testCase.id} className="bg-gray-50 p-4 rounded border border-gray-200">
-                          <p className="font-medium mb-2">Example {index + 1}</p>
-                          <div className="mb-2">
-                            <span className="font-medium text-sm">Input:</span>
-                            <pre className="bg-white p-2 rounded mt-1 text-sm overflow-x-auto">{testCase.input}</pre>
-                          </div>
-                          <div>
-                            <span className="font-medium text-sm">Expected Output:</span>
-                            <pre className="bg-white p-2 rounded mt-1 text-sm overflow-x-auto">{testCase.expectedOutput}</pre>
+                        <div key={testCase.id} className="bg-slate-850 p-5 rounded-lg border border-slate-700">
+                          <p className="font-semibold mb-3 text-slate-200">Example {index + 1}</p>
+                          <div className="space-y-3">
+                            <div>
+                              <span className="font-medium text-sm text-slate-400 block mb-1">Input:</span>
+                              <pre className="bg-slate-900 p-3 rounded border border-slate-700 text-sm overflow-x-auto font-mono text-slate-200">{testCase.input}</pre>
+                            </div>
+                            <div>
+                              <span className="font-medium text-sm text-slate-400 block mb-1">Expected Output:</span>
+                              <pre className="bg-slate-900 p-3 rounded border border-slate-700 text-sm overflow-x-auto font-mono text-slate-200">{testCase.expectedOutput}</pre>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -361,13 +372,13 @@ function ProblemDetail() {
 
         {/* Resizer */}
         <div
-          className="w-1 bg-gray-300 hover:bg-primary-500 cursor-col-resize"
+          className="w-1 bg-slate-700 hover:bg-primary cursor-col-resize transition-colors"
           onMouseDown={handleMouseDown}
         />
 
         {/* Right Panel - Code Editor and Results */}
         <div
-          className="flex flex-col overflow-hidden"
+          className="flex flex-col overflow-hidden bg-slate-850"
           style={{ width: `${100 - splitPosition}%` }}
         >
           {/* Code Editor */}
@@ -378,6 +389,9 @@ function ProblemDetail() {
               value={code}
               onChange={(value) => setCode(value || '')}
               theme={theme}
+              onMount={(editor, monaco) => {
+                defineLocalcodeTheme(monaco);
+              }}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
@@ -391,20 +405,20 @@ function ProblemDetail() {
 
           {/* Submission Results */}
           {submissionResult && (
-            <div className="border-t border-gray-200 bg-white p-4 overflow-y-auto max-h-64">
+            <div className="border-t border-slate-700 bg-slate-850 p-4 overflow-y-auto max-h-64">
               <div className="mb-3">
-                <h3 className="text-lg font-semibold mb-2">Submission Results</h3>
+                <h3 className="text-lg font-semibold mb-2 text-slate-100">Submission Results</h3>
                 <div className="flex items-center gap-4">
                   <span className={`font-semibold ${getStatusColor(submissionResult.status)}`}>
                     {formatStatus(submissionResult.status)}
                   </span>
                   {submissionResult.runtimeMs !== null && (
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-slate-400">
                       Runtime: {submissionResult.runtimeMs}ms
                     </span>
                   )}
                   {submissionResult.memoryKb !== null && (
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-slate-400">
                       Memory: {(submissionResult.memoryKb / 1024).toFixed(2)}MB
                     </span>
                   )}
@@ -414,7 +428,7 @@ function ProblemDetail() {
               {/* Test Results */}
               {submissionResult.testResults && submissionResult.testResults.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-slate-300">
                     Passed: {submissionResult.testResults.filter(tr => tr.passed).length} / {submissionResult.testResults.length}
                   </p>
                   {submissionResult.testResults.map((result, index) => (
@@ -422,15 +436,15 @@ function ProblemDetail() {
                       key={index}
                       className={`p-3 rounded border ${
                         result.passed
-                          ? 'bg-green-50 border-green-200'
-                          : 'bg-red-50 border-red-200'
+                          ? 'bg-emerald-900/20 border-emerald-700'
+                          : 'bg-red-900/20 border-red-700'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-sm">
+                        <span className="font-medium text-sm text-slate-200">
                           Test Case {index + 1}
                         </span>
-                        <span className={result.passed ? 'text-green-600' : 'text-red-600'}>
+                        <span className={result.passed ? 'text-emerald-400' : 'text-red-400'}>
                           {result.passed ? '✓ Passed' : '✗ Failed'}
                         </span>
                       </div>
@@ -438,32 +452,32 @@ function ProblemDetail() {
                         <div className="text-sm mt-2 space-y-1">
                           {result.input && (
                             <div>
-                              <span className="font-medium">Input:</span>
-                              <pre className="bg-white p-2 rounded mt-1 text-xs overflow-x-auto">{result.input}</pre>
+                              <span className="font-medium text-slate-300">Input:</span>
+                              <pre className="bg-slate-900 p-2 rounded mt-1 text-xs overflow-x-auto font-mono text-slate-200 border border-slate-700">{result.input}</pre>
                             </div>
                           )}
                           {result.expectedOutput && (
                             <div>
-                              <span className="font-medium">Expected:</span>
-                              <pre className="bg-white p-2 rounded mt-1 text-xs overflow-x-auto">{result.expectedOutput}</pre>
+                              <span className="font-medium text-slate-300">Expected:</span>
+                              <pre className="bg-slate-900 p-2 rounded mt-1 text-xs overflow-x-auto font-mono text-slate-200 border border-slate-700">{result.expectedOutput}</pre>
                             </div>
                           )}
                           {result.actualOutput && (
                             <div>
-                              <span className="font-medium">Actual:</span>
-                              <pre className="bg-white p-2 rounded mt-1 text-xs overflow-x-auto">{result.actualOutput}</pre>
+                              <span className="font-medium text-slate-300">Actual:</span>
+                              <pre className="bg-slate-900 p-2 rounded mt-1 text-xs overflow-x-auto font-mono text-slate-200 border border-slate-700">{result.actualOutput}</pre>
                             </div>
                           )}
                           {result.errorMessage && (
                             <div>
-                              <span className="font-medium text-red-600">Error:</span>
-                              <pre className="bg-white p-2 rounded mt-1 text-xs overflow-x-auto text-red-600">{result.errorMessage}</pre>
+                              <span className="font-medium text-red-400">Error:</span>
+                              <pre className="bg-slate-900 p-2 rounded mt-1 text-xs overflow-x-auto font-mono text-red-400 border border-slate-700">{result.errorMessage}</pre>
                             </div>
                           )}
                         </div>
                       )}
                       {result.runtimeMs !== null && (
-                        <div className="text-xs text-gray-600 mt-1">
+                        <div className="text-xs text-slate-400 mt-1">
                           Runtime: {result.runtimeMs}ms
                         </div>
                       )}
