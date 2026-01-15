@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: localcode-postgres
+    container_name: localcode-postgres-dev
     environment:
       POSTGRES_DB: localcode
       POSTGRES_USER: localcode
@@ -11,54 +9,61 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_spec:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     networks:
-      - localcode-network
+      - localcode-dev-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U localcode -d localcode"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile.java
-    container_name: localcode-backend
+      context: ..
+      dockerfile: .devcontainer/Dockerfile.backend.dev
+    container_name: localcode-backend-dev
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/localcode
       SPRING_DATASOURCE_USERNAME: localcode
       SPRING_DATASOURCE_PASSWORD: localcode
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      JWT_SECRET: your-secret-key-change-in-production
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      JWT_SECRET: dev-secret-key-that-is-at-least-256-bits-long-for-hmac-sha256
     ports:
       - "8080:8080"
+      - "5005:5005"
+    volumes:
+      - ../backend:/app
+      - maven_cache:/root/.m2
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - localcode-network
-    restart: unless-stopped
+      - localcode-dev-network
 
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile.frontend
-    container_name: localcode-frontend
+      context: ..
+      dockerfile: .devcontainer/Dockerfile.frontend.dev
+    container_name: localcode-frontend-dev
     environment:
       VITE_API_BASE_URL: http://localhost:8080/api
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app
+      - node_modules:/app/node_modules
     depends_on:
       - backend
     networks:
-      - localcode-network
-    restart: unless-stopped
+      - localcode-dev-network
 
 volumes:
-  postgres_data_spec:
-    driver: local
+  postgres_data_dev:
+  maven_cache:
+  node_modules:
 
 networks:
-  localcode-network:
+  localcode-dev-network:
     driver: bridge

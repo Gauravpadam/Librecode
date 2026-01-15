@@ -1,4 +1,4 @@
-.PHONY: help build start stop clean logs backend-build frontend-build docker-build
+.PHONY: help build start stop clean logs backend-build frontend-build docker-build dev dev-stop
 
 help:
 	@echo "LocalCode Development Commands"
@@ -6,6 +6,8 @@ help:
 	@echo "make build          - Build all services (backend, frontend, docker images)"
 	@echo "make start          - Start all services with Docker Compose"
 	@echo "make stop           - Stop all services"
+	@echo "make dev            - Start development environment with hot reload"
+	@echo "make dev-stop       - Stop development environment"
 	@echo "make clean          - Clean build artifacts"
 	@echo "make logs           - View logs from all services"
 	@echo "make backend-build  - Build backend only"
@@ -24,9 +26,10 @@ frontend-build:
 
 docker-build:
 	@echo "Building Docker execution images..."
-	podman build -t localcode-java:latest -f docker/Dockerfile.java docker/
-	podman build -t localcode-python:latest -f docker/Dockerfile.python docker/
-	podman build -t localcode-javascript:latest -f docker/Dockerfile.javascript docker/
+	podman build -t localcode-java:latest -f backend/Dockerfile.java .
+	podman build -t localcode-python:latest -f docker/Dockerfile.python .
+	podman build -t localcode-javascript:latest -f frontend/Dockerfile.javascript .
+	podman build -t localcode-frontend:latest -f frontend/Dockerfile.frontend .
 
 start:
 	@echo "Starting LocalCode services..."
@@ -44,3 +47,12 @@ clean:
 
 logs:
 	docker-compose logs -f
+
+
+dev:
+	@echo "Starting development environment..."
+	podman compose -f .devcontainer/docker-compose.dev.yml up --build
+
+dev-stop:
+	@echo "Stopping development environment..."
+	podman compose -f .devcontainer/docker-compose.dev.yml down

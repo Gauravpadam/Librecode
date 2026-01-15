@@ -1,0 +1,13 @@
+# Stage 1: Maven image
+FROM maven:3.8.3-openjdk-17
+
+WORKDIR /app
+
+
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     time \
+#     && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 8080 5005
+
+CMD ["mvn", "spring-boot:run"]
