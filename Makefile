@@ -56,3 +56,7 @@ dev:
 dev-stop:
 	@echo "Stopping development environment..."
 	podman compose -f .devcontainer/docker-compose.dev.yml down
+
+dev-clean-stop:
+	@echo "Stopping development environment..."
+	podman compose -f .devcontainer/docker-compose.dev.yml down -v
