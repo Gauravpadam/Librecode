@@ -59,7 +59,7 @@ function CodeEditor({
   };
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full h-full ${className}`}>
       <Editor
         height={height}
         language={getMonacoLanguage(language)}
