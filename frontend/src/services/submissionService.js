@@ -78,11 +78,11 @@ export const getSubmissionById = async (submissionId) => {
 
 /**
  * Get user statistics
- * @returns {Promise<Object>} User statistics (solved, attempted, total problems)
+ * @returns {Promise<Object>} User statistics (solved, attempted, total problems, accuracy, recent submissions)
  */
 export const getStats = async () => {
   try {
-    const response = await apiClient.get('/submissions/stats');
+    const response = await apiClient.get('/users/stats');
     return response.data;
   } catch (error) {
     throw error;

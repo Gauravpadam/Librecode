@@ -63,6 +63,45 @@ public class ProblemService {
                     problem.getId(),
                     problem.getTitle(),
                     problem.getDifficulty().name(),
+                    problem.getTags(),
+                    userStatus,
+                    attemptCount
+                );
+            })
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get problems with filters (difficulty, tags, search).
+     *
+     * @param userId the user ID to calculate progress for
+     * @param difficulty optional difficulty filter
+     * @param tags optional tags filter (OR logic)
+     * @param searchTerm optional search term for title
+     * @return list of problem DTOs with user status
+     */
+    @Transactional(readOnly = true)
+    public List<ProblemDTO> getProblemsWithFilters(Long userId, String difficulty, 
+                                                   String[] tags, String searchTerm) {
+        List<Problem> problems = problemRepository.findWithFilters(difficulty, tags, searchTerm);
+        
+        // Get user's solved and attempted problem IDs
+        List<Long> solvedProblemIds = submissionRepository.findSolvedProblemIdsByUserId(userId);
+        List<Long> attemptedProblemIds = submissionRepository.findAttemptedProblemIdsByUserId(userId);
+        
+        Set<Long> solvedSet = new HashSet<>(solvedProblemIds);
+        Set<Long> attemptedSet = new HashSet<>(attemptedProblemIds);
+        
+        return problems.stream()
+            .map(problem -> {
+                String userStatus = calculateUserStatus(problem.getId(), solvedSet, attemptedSet);
+                Integer attemptCount = calculateAttemptCount(problem.getId(), userId);
+                
+                return new ProblemDTO(
+                    problem.getId(),
+                    problem.getTitle(),
+                    problem.getDifficulty().name(),
+                    problem.getTags(),
                     userStatus,
                     attemptCount
                 );
@@ -97,6 +136,7 @@ public class ProblemService {
                     problem.getId(),
                     problem.getTitle(),
                     problem.getDifficulty().name(),
+                    problem.getTags(),
                     userStatus,
                     attemptCount
                 );
@@ -145,6 +185,7 @@ public class ProblemService {
             problem.getDescription(),
             problem.getConstraints(),
             problem.getDifficulty().name(),
+            problem.getTags(),
             problem.getTimeLimitMs(),
             problem.getMemoryLimitMb(),
             starterCode,
@@ -176,6 +217,7 @@ public class ProblemService {
         problem.setDescription(request.getDescription());
         problem.setConstraints(request.getConstraints());
         problem.setDifficulty(difficulty);
+        problem.setTags(request.getTags());
         problem.setTimeLimitMs(request.getTimeLimitMs());
         problem.setMemoryLimitMb(request.getMemoryLimitMb());
         problem.setStarterCodeJava(request.getStarterCodeJava());
@@ -205,6 +247,7 @@ public class ProblemService {
             problem.getId(),
             problem.getTitle(),
             problem.getDifficulty().name(),
+            problem.getTags(),
             "not_attempted",
             0
         );

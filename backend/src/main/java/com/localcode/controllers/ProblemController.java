@@ -32,27 +32,44 @@ public class ProblemController {
     }
     
     /**
-     * Get all problems with optional difficulty filtering.
+     * Get all problems with optional filtering.
      *
      * @param difficulty optional difficulty filter (EASY, MEDIUM, HARD)
+     * @param tags optional tags filter (comma-separated, OR logic)
+     * @param search optional search term for title
      * @return ResponseEntity with list of problem DTOs
      */
     @GetMapping
-    public ResponseEntity<?> getAllProblems(@RequestParam(required = false) String difficulty) {
+    public ResponseEntity<?> getAllProblems(
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) String search) {
         try {
             User currentUser = getCurrentUser();
             
             List<ProblemDTO> problems;
-            if (difficulty != null && !difficulty.isEmpty()) {
-                problems = problemService.getAllProblemsByDifficulty(currentUser.getId(), difficulty);
+            
+            // If any filter is provided, use the filtering method
+            if (difficulty != null || tags != null || search != null) {
+                String[] tagsArray = (tags != null && !tags.isEmpty()) 
+                    ? tags.split(",") 
+                    : null;
+                
+                problems = problemService.getProblemsWithFilters(
+                    currentUser.getId(), 
+                    difficulty, 
+                    tagsArray, 
+                    search
+                );
             } else {
+                // No filters, get all problems
                 problems = problemService.getAllProblems(currentUser.getId());
             }
             
             return ResponseEntity.ok(problems);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("Invalid difficulty level: " + difficulty));
+                    .body(new ErrorResponse("Invalid filter parameters: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Failed to fetch problems: " + e.getMessage()));

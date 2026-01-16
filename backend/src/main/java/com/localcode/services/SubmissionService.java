@@ -25,15 +25,18 @@ public class SubmissionService {
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
     private final TestResultRepository testResultRepository;
+    private final UserProblemStatusService userProblemStatusService;
     
     public SubmissionService(SubmissionRepository submissionRepository,
                            ProblemRepository problemRepository,
                            UserRepository userRepository,
-                           TestResultRepository testResultRepository) {
+                           TestResultRepository testResultRepository,
+                           UserProblemStatusService userProblemStatusService) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
         this.testResultRepository = testResultRepository;
+        this.userProblemStatusService = userProblemStatusService;
     }
     
     /**
@@ -140,13 +143,35 @@ public class SubmissionService {
         // Get accepted submissions count
         long acceptedSubmissions = submissionRepository.countByUserIdAndStatus(userId, SubmissionStatus.ACCEPTED);
         
+        // Calculate accuracy
+        double accuracy = totalSubmissions > 0 
+            ? (acceptedSubmissions * 100.0) / totalSubmissions 
+            : 0.0;
+        
+        // Get recent 10 submissions
+        List<Submission> recentSubmissions = submissionRepository.findTop10ByUserIdOrderBySubmittedAtDesc(userId);
+        List<SubmissionDTO> recentSubmissionDTOs = recentSubmissions.stream()
+            .map(submission -> new SubmissionDTO(
+                submission.getId(),
+                submission.getProblem().getId(),
+                submission.getProblem().getTitle(),
+                submission.getLanguage(),
+                submission.getStatus(),
+                submission.getRuntimeMs(),
+                submission.getMemoryKb(),
+                submission.getSubmittedAt()
+            ))
+            .collect(Collectors.toList());
+        
         return new UserStatsDTO(
             userId,
             (int) totalProblems,
             solvedCount,
             attemptedCount,
             (int) totalSubmissions,
-            (int) acceptedSubmissions
+            (int) acceptedSubmissions,
+            accuracy,
+            recentSubmissionDTOs
         );
     }
     
@@ -172,6 +197,18 @@ public class SubmissionService {
         submission.setMemoryKb(memoryKb);
         
         submissionRepository.save(submission);
+        
+        // Update user problem status based on submission result
+        Long userId = submission.getUser().getId();
+        Long problemId = submission.getProblem().getId();
+        
+        if (status == SubmissionStatus.ACCEPTED) {
+            // Mark as SOLVED if accepted
+            userProblemStatusService.updateStatus(userId, problemId, ProblemStatus.SOLVED);
+        } else {
+            // Mark as ATTEMPTED if not accepted (and not already SOLVED)
+            userProblemStatusService.updateStatus(userId, problemId, ProblemStatus.ATTEMPTED);
+        }
         
         logger.info("Updated submission {} successfully", submissionId);
     }

@@ -47,6 +47,9 @@ public class Problem {
     @Column(name = "starter_code_javascript", columnDefinition = "TEXT")
     private String starterCodeJavascript;
     
+    @Column(name = "tags", columnDefinition = "TEXT[]")
+    private String[] tags;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -187,5 +190,13 @@ public class Problem {
     
     public void setCustomTestCases(List<CustomTestCase> customTestCases) {
         this.customTestCases = customTestCases;
+    }
+    
+    public String[] getTags() {
+        return tags;
+    }
+    
+    public void setTags(String[] tags) {
+        this.tags = tags;
     }
 }

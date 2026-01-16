@@ -63,10 +63,10 @@ function RecentSubmissions({ submissions = [], loading = false }) {
                   <span className="font-mono">{submission.language}</span>
                   <span>•</span>
                   <span>{new Date(submission.submittedAt).toLocaleDateString()}</span>
-                  {submission.runtime && (
+                  {submission.runtimeMs && (
                     <>
                       <span>•</span>
-                      <span>{submission.runtime}ms</span>
+                      <span>{submission.runtimeMs}ms</span>
                     </>
                   )}
                 </div>

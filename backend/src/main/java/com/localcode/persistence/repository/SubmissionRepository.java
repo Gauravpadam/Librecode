@@ -105,4 +105,12 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
      */
     Optional<Submission> findFirstByUserIdAndProblemIdAndStatusOrderByRuntimeMsAsc(
         Long userId, Long problemId, SubmissionStatus status);
+    
+    /**
+     * Find top 10 most recent submissions for a user.
+     *
+     * @param userId the user ID
+     * @return list of top 10 recent submissions
+     */
+    List<Submission> findTop10ByUserIdOrderBySubmittedAtDesc(Long userId);
 }

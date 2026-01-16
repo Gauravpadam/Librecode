@@ -1,5 +1,7 @@
 package com.localcode.dto;
 
+import java.util.List;
+
 /**
  * DTO for user statistics and progress tracking.
  */
@@ -11,6 +13,8 @@ public class UserStatsDTO {
     private Integer attemptedProblems;
     private Integer totalSubmissions;
     private Integer acceptedSubmissions;
+    private Double accuracy;
+    private List<SubmissionDTO> recentSubmissions;
     
     // Constructors
     public UserStatsDTO() {
@@ -18,13 +22,16 @@ public class UserStatsDTO {
     
     public UserStatsDTO(Long userId, Integer totalProblems, Integer solvedProblems, 
                        Integer attemptedProblems, Integer totalSubmissions, 
-                       Integer acceptedSubmissions) {
+                       Integer acceptedSubmissions, Double accuracy, 
+                       List<SubmissionDTO> recentSubmissions) {
         this.userId = userId;
         this.totalProblems = totalProblems;
         this.solvedProblems = solvedProblems;
         this.attemptedProblems = attemptedProblems;
         this.totalSubmissions = totalSubmissions;
         this.acceptedSubmissions = acceptedSubmissions;
+        this.accuracy = accuracy;
+        this.recentSubmissions = recentSubmissions;
     }
     
     // Getters and Setters
@@ -74,5 +81,21 @@ public class UserStatsDTO {
     
     public void setAcceptedSubmissions(Integer acceptedSubmissions) {
         this.acceptedSubmissions = acceptedSubmissions;
+    }
+    
+    public Double getAccuracy() {
+        return accuracy;
+    }
+    
+    public void setAccuracy(Double accuracy) {
+        this.accuracy = accuracy;
+    }
+    
+    public List<SubmissionDTO> getRecentSubmissions() {
+        return recentSubmissions;
+    }
+    
+    public void setRecentSubmissions(List<SubmissionDTO> recentSubmissions) {
+        this.recentSubmissions = recentSubmissions;
     }
 }

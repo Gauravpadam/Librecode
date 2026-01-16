@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getStats, getSubmissions } from '../services/submissionService';
+import { getStats } from '../services/submissionService';
 import { CodingQuote, StatsCard, RecentSubmissions } from '../components/home';
 
 function Home() {
@@ -17,29 +17,17 @@ function Home() {
       }
 
       try {
-        // Fetch user stats
+        // Fetch user stats (now includes recent submissions)
         const statsData = await getStats();
         
-        // Calculate accuracy
-        const accuracy = statsData.totalSubmissions > 0
-          ? Math.round((statsData.acceptedSubmissions / statsData.totalSubmissions) * 100)
-          : 0;
-
         setStats({
           solved: statsData.solvedProblems || 0,
           submissions: statsData.totalSubmissions || 0,
-          accuracy: `${accuracy}%`,
+          accuracy: statsData.accuracy ? `${Math.round(statsData.accuracy)}%` : '0%',
         });
 
-        // Fetch recent submissions (last 5)
-        const submissionsData = await getSubmissions({ page: 0, size: 5 });
-        
-        // Handle both array and paginated response
-        const submissions = Array.isArray(submissionsData) 
-          ? submissionsData 
-          : submissionsData.content || [];
-        
-        setRecentSubmissions(submissions);
+        // Use recent submissions from stats response
+        setRecentSubmissions(statsData.recentSubmissions || []);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {

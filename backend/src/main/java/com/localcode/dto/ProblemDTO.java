@@ -7,6 +7,7 @@ public class ProblemDTO {
     private Long id;
     private String title;
     private String difficulty;
+    private String[] tags;
     private String userStatus; // "solved", "attempted", "not_attempted"
     private Integer attemptCount;
     
@@ -14,10 +15,11 @@ public class ProblemDTO {
     public ProblemDTO() {
     }
     
-    public ProblemDTO(Long id, String title, String difficulty, String userStatus, Integer attemptCount) {
+    public ProblemDTO(Long id, String title, String difficulty, String[] tags, String userStatus, Integer attemptCount) {
         this.id = id;
         this.title = title;
         this.difficulty = difficulty;
+        this.tags = tags;
         this.userStatus = userStatus;
         this.attemptCount = attemptCount;
     }
@@ -61,5 +63,13 @@ public class ProblemDTO {
     
     public void setAttemptCount(Integer attemptCount) {
         this.attemptCount = attemptCount;
+    }
+    
+    public String[] getTags() {
+        return tags;
+    }
+    
+    public void setTags(String[] tags) {
+        this.tags = tags;
     }
 }

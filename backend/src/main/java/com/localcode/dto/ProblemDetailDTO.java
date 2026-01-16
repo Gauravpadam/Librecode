@@ -12,6 +12,7 @@ public class ProblemDetailDTO {
     private String description;
     private String constraints;
     private String difficulty;
+    private String[] tags;
     private Integer timeLimitMs;
     private Integer memoryLimitMb;
     private Map<String, String> starterCode; // language -> code
@@ -24,7 +25,7 @@ public class ProblemDetailDTO {
     }
     
     public ProblemDetailDTO(Long id, String title, String description, String constraints, 
-                           String difficulty, Integer timeLimitMs, Integer memoryLimitMb,
+                           String difficulty, String[] tags, Integer timeLimitMs, Integer memoryLimitMb,
                            Map<String, String> starterCode, String userStatus, 
                            Integer attemptCount, LocalDateTime createdAt) {
         this.id = id;
@@ -32,6 +33,7 @@ public class ProblemDetailDTO {
         this.description = description;
         this.constraints = constraints;
         this.difficulty = difficulty;
+        this.tags = tags;
         this.timeLimitMs = timeLimitMs;
         this.memoryLimitMb = memoryLimitMb;
         this.starterCode = starterCode;
@@ -127,5 +129,13 @@ public class ProblemDetailDTO {
     
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public String[] getTags() {
+        return tags;
+    }
+    
+    public void setTags(String[] tags) {
+        this.tags = tags;
     }
 }

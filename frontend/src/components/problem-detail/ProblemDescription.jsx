@@ -10,8 +10,19 @@ import PropTypes from 'prop-types';
  * - Monospace font for code blocks
  * - New color scheme applied
  */
-function ProblemDescription({ problem, testCases, solutionsTab, submissionsTab }) {
-  const [activeTab, setActiveTab] = useState('description');
+function ProblemDescription({ problem, testCases, activeTab: propActiveTab, onTabChange, solutionsTab, submissionsTab }) {
+  const [internalActiveTab, setInternalActiveTab] = useState('description');
+  
+  // Use prop activeTab if provided, otherwise use internal state
+  const activeTab = propActiveTab !== undefined ? propActiveTab : internalActiveTab;
+  
+  const handleTabClick = (tabId) => {
+    if (onTabChange) {
+      onTabChange(tabId);
+    } else {
+      setInternalActiveTab(tabId);
+    }
+  };
 
   const tabs = [
     { id: 'description', label: 'Description' },
@@ -26,7 +37,7 @@ function ProblemDescription({ problem, testCases, solutionsTab, submissionsTab }
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
             className={`px-6 py-3 font-medium text-sm transition-colors ${
               activeTab === tab.id
                 ? 'border-b-2 border-primary text-primary'
@@ -44,18 +55,18 @@ function ProblemDescription({ problem, testCases, solutionsTab, submissionsTab }
           <DescriptionTab problem={problem} testCases={testCases} />
         )}
         {activeTab === 'solutions' && (
-          <div className="p-6">
+          <div>
             {solutionsTab || (
-              <div className="text-slate-400 text-center py-8">
+              <div className="text-slate-400 text-center py-8 p-6">
                 Solutions tab content will be implemented in task 12-13
               </div>
             )}
           </div>
         )}
         {activeTab === 'submissions' && (
-          <div className="p-6">
+          <div>
             {submissionsTab || (
-              <div className="text-slate-400 text-center py-8">
+              <div className="text-slate-400 text-center py-8 p-6">
                 Submissions tab content will be implemented in task 12-13
               </div>
             )}
@@ -203,6 +214,8 @@ ProblemDescription.propTypes = {
       isSample: PropTypes.bool,
     })
   ),
+  activeTab: PropTypes.string,
+  onTabChange: PropTypes.func,
   solutionsTab: PropTypes.node,
   submissionsTab: PropTypes.node,
 };

@@ -35,6 +35,8 @@ public class CreateProblemRequest {
     private String starterCodePython;
     private String starterCodeJavascript;
     
+    private String[] tags;
+    
     private List<TestCaseRequest> testCases;
     
     // Constructors
@@ -112,6 +114,14 @@ public class CreateProblemRequest {
     
     public void setStarterCodeJavascript(String starterCodeJavascript) {
         this.starterCodeJavascript = starterCodeJavascript;
+    }
+    
+    public String[] getTags() {
+        return tags;
+    }
+    
+    public void setTags(String[] tags) {
+        this.tags = tags;
     }
     
     public List<TestCaseRequest> getTestCases() {

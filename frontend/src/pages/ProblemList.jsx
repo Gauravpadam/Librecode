@@ -42,7 +42,7 @@ function ProblemList() {
 
   useEffect(() => {
     fetchProblems();
-  }, [difficultyFilter, statusFilter, tags, sortBy, currentPage]);
+  }, [difficultyFilter, tags, searchTerm]);
 
   const fetchProblems = async () => {
     try {
@@ -51,26 +51,17 @@ function ProblemList() {
       
       // Build query parameters for API
       const params = new URLSearchParams();
-      if (difficultyFilter !== 'all') params.append('difficulty', difficultyFilter);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (tags.length > 0) tags.forEach(tag => params.append('tags', tag));
-      if (sortBy) params.append('sort', sortBy);
-      params.append('page', currentPage - 1); // Backend uses 0-based indexing
-      params.append('size', pageSize);
+      if (difficultyFilter !== 'all') params.append('difficulty', difficultyFilter.toUpperCase());
+      if (tags.length > 0) params.append('tags', tags.join(','));
+      if (searchTerm) params.append('search', searchTerm);
+      // Note: Backend doesn't support pagination yet, so we skip page/size params
       
       const url = `${API_ENDPOINTS.PROBLEMS}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await api.get(url);
       
-      // Handle both paginated and non-paginated responses
-      if (response.data.content) {
-        // Paginated response
-        setProblems(response.data.content);
-        setTotalPages(response.data.totalPages || 1);
-      } else {
-        // Non-paginated response (fallback)
-        setProblems(Array.isArray(response.data) ? response.data : []);
-        setTotalPages(1);
-      }
+      // Backend returns array of problems with userStatus field
+      setProblems(Array.isArray(response.data) ? response.data : []);
+      setTotalPages(1); // No pagination yet
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load problems');
       console.error('Error fetching problems:', err);
@@ -79,11 +70,10 @@ function ProblemList() {
     }
   };
 
-  // Client-side filtering for search (since backend might not support it yet)
+  // Client-side filtering for status (backend returns userStatus in each problem)
   const filteredProblems = problems.filter((problem) => {
-    const matchesSearch = searchTerm === '' || 
-      problem.title?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    const matchesStatus = statusFilter === 'all' || problem.userStatus === statusFilter;
+    return matchesStatus;
   });
 
   // Extract available tags from problems
@@ -91,6 +81,7 @@ function ProblemList() {
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page
   };
 
   const handleDifficultyChange = (value) => {

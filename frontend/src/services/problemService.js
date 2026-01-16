@@ -9,7 +9,7 @@ import apiClient from './api';
  * Get all problems with optional filtering
  * @param {Object} filters - Optional filters
  * @param {string} filters.difficulty - Filter by difficulty (EASY, MEDIUM, HARD)
- * @param {string} filters.status - Filter by user status (solved, attempted, not_attempted)
+ * @param {Array<string>} filters.tags - Filter by tags (OR logic)
  * @param {string} filters.search - Search by title
  * @returns {Promise<Array>} List of problems
  */
@@ -20,8 +20,8 @@ export const getProblems = async (filters = {}) => {
     if (filters.difficulty) {
       params.append('difficulty', filters.difficulty);
     }
-    if (filters.status) {
-      params.append('status', filters.status);
+    if (filters.tags && filters.tags.length > 0) {
+      params.append('tags', filters.tags.join(','));
     }
     if (filters.search) {
       params.append('search', filters.search);
