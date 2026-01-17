@@ -36,9 +36,9 @@ function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12">
+    <div className="max-w-md mx-auto my-auto px-4 py-12">
       <div className="card">
-        <h2 className="text-2xl font-bold text-center mb-6">Login to LocalCode</h2>
+        <h2 className="text-2xl font-bold text-slate-300 text-center mb-6">Login to LocalCode</h2>
         
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
@@ -48,7 +48,7 @@ function Login() {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-1">
               Username
             </label>
             <input
@@ -62,7 +62,7 @@ function Login() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
               Password
             </label>
             <input
@@ -83,7 +83,7 @@ function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-600 mt-4">
+        <p className="text-center text-sm text-slate-100 mt-4">
           Don't have an account?{' '}
           <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
             Sign up

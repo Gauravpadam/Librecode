@@ -97,27 +97,27 @@ function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-3xl text-slate-300 font-bold mb-6">Dashboard</h1>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Solved</h3>
+          <h3 className="text-lg text-slate-300 font-semibold text-gray-700 mb-2">Total Solved</h3>
           <p className="text-3xl font-bold text-success">{stats?.totalSolved || 0}</p>
         </div>
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Attempted</h3>
+          <h3 className="text-lg text-slate-300 font-semibold text-gray-700 mb-2">Attempted</h3>
           <p className="text-3xl font-bold text-warning">{stats?.totalAttempted || 0}</p>
         </div>
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Problems</h3>
+          <h3 className="text-lg text-slate-300 font-semibold text-gray-700 mb-2">Total Problems</h3>
           <p className="text-3xl font-bold text-primary-600">{stats?.totalProblems || 0}</p>
         </div>
       </div>
 
       {/* Quick Links */}
       <div className="card mb-8">
-        <h2 className="text-xl font-semibold mb-4">Quick Links</h2>
+        <h2 className="text-xl text-slate-300 font-semibold mb-4">Quick Links</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => navigate('/problems')}
@@ -163,7 +163,7 @@ function Dashboard() {
       {/* Recent Submissions */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Recent Submissions</h2>
+          <h2 className="text-xl text-slate-300 font-semibold">Recent Submissions</h2>
           <button
             onClick={() => navigate('/submissions')}
             className="text-primary-600 hover:text-primary-700 text-sm font-medium"

@@ -151,18 +151,18 @@ function SubmissionHistory() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Submission History</h1>
+      <h1 className="text-3xl text-slate-300 font-bold mb-6">Submission History</h1>
 
       {/* Filters and Sort Controls */}
       <div className="card mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
+            <label className="text-sm text-slate-300 font-medium text-gray-700">Filter by Status:</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-slate-300 focus:ring-2 focus:ring-primary-500"
             >
               <option value="all">All</option>
               <option value="accepted">Accepted</option>
@@ -176,11 +176,11 @@ function SubmissionHistory() {
 
           {/* Sort Controls */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Sort by:</label>
+            <label className="text-sm font-medium text-slate-300 text-gray-700">Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 border border-gray-300 text-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="date">Date</option>
               <option value="runtime">Runtime</option>
@@ -189,7 +189,7 @@ function SubmissionHistory() {
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 border border-gray-300 text-slate-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
               title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}

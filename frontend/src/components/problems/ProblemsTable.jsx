@@ -93,11 +93,6 @@ function ProblemsTable({
           </tbody>
         </table>
       </div>
-
-      {/* Results count */}
-      <div className="mt-4 text-center text-sm text-slate-400">
-        Showing {problems.length} {problems.length === 1 ? 'problem' : 'problems'}
-      </div>
     </div>
   );
 }

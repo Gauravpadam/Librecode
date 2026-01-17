@@ -126,14 +126,14 @@ function SubmissionDetail() {
           </svg>
           Back to Submissions
         </button>
-        <h1 className="text-3xl font-bold">Submission Details</h1>
+        <h1 className="text-3xl text-slate-300 font-bold">Submission Details</h1>
       </div>
 
       {/* Submission Overview */}
       <div className="card mb-6">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-semibold mb-2">{submission.problemTitle}</h2>
+            <h2 className="text-2xl text-slate-300 font-semibold mb-2">{submission.problemTitle}</h2>
             <p className="text-gray-600">Submitted on {formatDate(submission.submittedAt)}</p>
           </div>
           <div className="flex gap-3">
@@ -207,7 +207,7 @@ function SubmissionDetail() {
       {/* Code Section */}
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold">Submitted Code</h3>
+          <h3 className="text-xl text-slate-300 font-semibold">Submitted Code</h3>
           <span className="text-sm text-gray-600 capitalize">{submission.language}</span>
         </div>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
