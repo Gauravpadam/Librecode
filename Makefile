@@ -24,12 +24,11 @@ frontend-build:
 	@echo "Building frontend..."
 	cd frontend && npm install && npm run build
 
-docker-build:
+runtime-build:
 	@echo "Building Docker execution images..."
-	podman build -t localcode-java:latest -f backend/Dockerfile.java .
-	podman build -t localcode-python:latest -f docker/Dockerfile.python .
-	podman build -t localcode-javascript:latest -f frontend/Dockerfile.javascript .
-	podman build -t localcode-frontend:latest -f frontend/Dockerfile.frontend .
+	podman build -t localcode-java:latest -f runtimes/Dockerfile.java .
+	podman build -t localcode-python:latest -f runtimes/Dockerfile.python .
+	podman build -t localcode-javascript:latest -f runtimes/Dockerfile.javascript .
 
 start:
 	@echo "Starting LocalCode services..."
@@ -48,6 +47,7 @@ clean:
 logs:
 	docker-compose logs -f
 
+dev-build: runtime-build
 
 dev:
 	@echo "Starting development environment..."

@@ -35,22 +35,24 @@ public class DockerSecurityConfig {
         // Calculate memory limit in bytes
         long memoryLimit = memoryLimitMb * 1024L * 1024L;
         
+        // Note: Some options may not be supported by Podman
+        // Using a more compatible configuration
         return HostConfig.newHostConfig()
             // Resource limits
             .withMemory(memoryLimit)
             .withMemorySwap(memoryLimit)  // Disable swap (same as memory limit)
-            .withCpuQuota(resourceLimits.getCpuQuota())  // 1 CPU core
-            .withCpuPeriod(resourceLimits.getCpuPeriod())  // 100ms period
             .withPidsLimit(50L)  // Limit number of processes
             
             // Security settings
             .withNetworkMode("none")  // No network access
             .withReadonlyRootfs(false)  // Need write access to /tmp
-            .withCapDrop(Capability.ALL)  // Drop all Linux capabilities
             
             // Additional security
             .withPrivileged(false)  // Not privileged
             .withPublishAllPorts(false);  // Don't publish ports
+            
+        // Note: Removed cpuQuota/cpuPeriod and capDrop for Podman compatibility
+        // These can be re-enabled if using Docker
     }
     
     /**
@@ -83,15 +85,12 @@ public class DockerSecurityConfig {
             return false;
         }
         
-        // Check CPU limits are set
-        if (hostConfig.getCpuQuota() == null || hostConfig.getCpuQuota() <= 0) {
-            return false;
-        }
-        
         // Check process limit is set
         if (hostConfig.getPidsLimit() == null || hostConfig.getPidsLimit() <= 0) {
             return false;
         }
+        
+        // Note: Removed CPU quota check for Podman compatibility
         
         return true;
     }

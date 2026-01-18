@@ -84,6 +84,12 @@
             <artifactId>docker-java-transport-httpclient5</artifactId>
             <version>${docker-java.version}</version>
         </dependency>
+        <!-- Required for docker-java httpclient5 transport -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5-h2</artifactId>
+            <version>5.2.4</version>
+        </dependency>
         
         <!-- Rate Limiting -->
         <dependency>

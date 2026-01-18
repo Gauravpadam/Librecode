@@ -35,10 +35,12 @@ services:
       - "5005:5005"
     volumes:
       - ../backend:/app
+      - /run/podman/podman.sock:/var/run/docker.sock
       - maven_cache:/root/.m2
     depends_on:
       postgres:
         condition: service_healthy
+    privileged: true
     networks:
       - localcode-dev-network
 

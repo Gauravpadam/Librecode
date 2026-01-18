@@ -10,4 +10,4 @@ WORKDIR /app
 
 EXPOSE 8080 5005
 
-CMD ["mvn", "spring-boot:run"]
+CMD ["mvn", "spring-boot:run", "-e"]

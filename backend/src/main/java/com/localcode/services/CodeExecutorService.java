@@ -50,19 +50,35 @@ public class CodeExecutorService {
         this.resourceLimits = resourceLimits;
         this.securityConfig = securityConfig;
         
-        // Initialize Docker client
-        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
-        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-            .dockerHost(config.getDockerHost())
-            .sslConfig(config.getSSLConfig())
-            .maxConnections(100)
-            .connectionTimeout(Duration.ofSeconds(30))
-            .responseTimeout(Duration.ofSeconds(45))
-            .build();
-        
-        this.dockerClient = DockerClientImpl.getInstance(config, httpClient);
-        
-        logger.info("CodeExecutorService initialized with Docker client");
+        try {
+            DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerHost("unix:///var/run/docker.sock")
+                .withDockerTlsVerify(false)
+                .withApiVersion("1.41")
+                .build();
+
+            DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                .dockerHost(config.getDockerHost())
+                .sslConfig(null)
+                .maxConnections(100)
+                .connectionTimeout(Duration.ofSeconds(30))
+                .responseTimeout(Duration.ofSeconds(45))
+                .build();
+
+            this.dockerClient = DockerClientImpl.getInstance(config, httpClient);
+            
+            // Test connection by pinging Docker daemon
+            dockerClient.pingCmd().exec();
+            logger.info("CodeExecutorService initialized - Docker daemon is reachable at: {}", config.getDockerHost());
+            
+            // List available images for debugging
+            dockerClient.listImagesCmd().exec().forEach(image -> 
+                logger.debug("Available image: {}", Arrays.toString(image.getRepoTags()))
+            );
+        } catch (Exception e) {
+            logger.error("Failed to initialize Docker client: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to initialize Docker client: " + e.getMessage(), e);
+        }
     }
     
     /**
@@ -78,12 +94,18 @@ public class CodeExecutorService {
         try {
             // Validate request
             validateRequest(request);
+
+            logger.info("Request validated!");
             
             // Get image name based on language
             String imageName = getImageName(request.getLanguage());
+
+            logger.info("Image selected!");
             
             // Create container with security and resource limits
             containerId = createContainer(imageName, request);
+
+            logger.info("Container created!");
             
             // Start container
             dockerClient.startContainerCmd(containerId).exec();
@@ -127,25 +149,43 @@ public class CodeExecutorService {
      * Create a Docker container with security and resource limits.
      */
     private String createContainer(String imageName, ExecutionRequest request) {
+        logger.info("Creating container with image: {}", imageName);
+        
+        // First, check if image exists
+        try {
+            dockerClient.inspectImageCmd(imageName).exec();
+            logger.info("Image {} found", imageName);
+        } catch (Exception e) {
+            logger.error("Image {} not found: {}", imageName, e.getMessage());
+            throw new ExecutionException("Image not found: " + imageName + ". Please build the runtime images first.", "container_creation");
+        }
+        
         // Create secure host config using security configuration
         HostConfig hostConfig = securityConfig.createSecureHostConfig(request.getMemoryLimitMb());
+        logger.info("Secure hostconfig created with memory limit: {}MB", request.getMemoryLimitMb());
         
         // Validate security settings
         if (!securityConfig.validateSecuritySettings(hostConfig)) {
             throw new ExecutionException("Invalid security configuration for container", "container_creation");
         }
+        logger.info("Security settings validated");
         
-        // Create container
-        CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
-            .withHostConfig(hostConfig)
-            .withAttachStdout(true)
-            .withAttachStderr(true)
-            .withTty(false)
-            .withCmd("sleep", String.valueOf(securityConfig.getMaxContainerLifetime()))
-            .exec();
-        
-        logger.info("Created secure container: {} with image: {}", container.getId(), imageName);
-        return container.getId();
+        try {
+            // Create container
+            CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
+                .withHostConfig(hostConfig)
+                .withAttachStdout(true)
+                .withAttachStderr(true)
+                .withTty(false)
+                .withCmd("sleep", String.valueOf(securityConfig.getMaxContainerLifetime()))
+                .exec();
+            
+            logger.info("Created secure container: {} with image: {}", container.getId(), imageName);
+            return container.getId();
+        } catch (Exception e) {
+            logger.error("Failed to create container with image {}: {}", imageName, e.getMessage(), e);
+            throw new ExecutionException("Failed to create container: " + e.getMessage(), "container_creation");
+        }
     }
     
     /**
