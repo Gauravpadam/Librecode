@@ -23,6 +23,7 @@ public class EvaluationService {
     private static final Logger logger = LoggerFactory.getLogger(EvaluationService.class);
     
     private final SubmissionRepository submissionRepository;
+    private final ProblemRepository problemRepository;
     private final TestCaseRepository testCaseRepository;
     private final CustomTestCaseRepository customTestCaseRepository;
     private final TestResultRepository testResultRepository;
@@ -30,12 +31,14 @@ public class EvaluationService {
     private final SubmissionService submissionService;
     
     public EvaluationService(SubmissionRepository submissionRepository,
+                           ProblemRepository problemRepository,
                            TestCaseRepository testCaseRepository,
                            CustomTestCaseRepository customTestCaseRepository,
                            TestResultRepository testResultRepository,
                            CodeExecutorService codeExecutorService,
                            SubmissionService submissionService) {
         this.submissionRepository = submissionRepository;
+        this.problemRepository = problemRepository;
         this.testCaseRepository = testCaseRepository;
         this.customTestCaseRepository = customTestCaseRepository;
         this.testResultRepository = testResultRepository;
@@ -185,6 +188,115 @@ public class EvaluationService {
             submissionId,
             finalStatus,
             allTestCases.size(),
+            passedCount,
+            maxRuntimeMs,
+            (int) maxMemoryKb,
+            testResults
+        );
+    }
+    
+    /**
+     * Run code against sample test cases only (no submission created).
+     * Used for the "Run" button to test code before submitting.
+     *
+     * @param problemId the problem ID
+     * @param code the code to run
+     * @param language the programming language
+     * @param userId the user ID (for custom test cases)
+     * @return run result with test results for sample cases only
+     */
+    public RunResult runAgainstSampleCases(Long problemId, String code, String language, Long userId) {
+        logger.info("Running code against sample test cases for problem: {}", problemId);
+        
+        // Get problem for limits
+        Problem problem = problemRepository.findById(problemId)
+            .orElseThrow(() -> new ResourceNotFoundException("Problem", "id", problemId));
+        
+        // Get only sample test cases
+        List<TestCase> sampleTestCases = testCaseRepository.findByProblemIdAndIsSampleOrderByOrderIndexAsc(problemId, true);
+        
+        if (sampleTestCases.isEmpty()) {
+            logger.warn("No sample test cases found for problem: {}", problemId);
+            throw new ValidationException("No sample test cases available for this problem");
+        }
+        
+        logger.info("Running against {} sample test cases", sampleTestCases.size());
+        
+        // Execute code against each sample test case
+        List<TestResultDTO> testResults = new ArrayList<>();
+        int passedCount = 0;
+        int maxRuntimeMs = 0;
+        long maxMemoryKb = 0;
+        
+        for (TestCase testCase : sampleTestCases) {
+            // Execute code
+            ExecutionRequest execRequest = new ExecutionRequest(
+                code,
+                language,
+                testCase.getInput(),
+                problem.getTimeLimitMs(),
+                problem.getMemoryLimitMb()
+            );
+            
+            ExecutionResult execResult = codeExecutorService.runInContainer(execRequest);
+            
+            // Determine if test passed
+            boolean passed = false;
+            String errorMessage = null;
+            
+            if (execResult.getStatus() == ExecutionStatus.COMPILATION_ERROR) {
+                errorMessage = execResult.getErrorMessage();
+            } else if (execResult.getStatus() == ExecutionStatus.RUNTIME_ERROR) {
+                errorMessage = execResult.getErrorMessage();
+            } else if (execResult.getStatus() == ExecutionStatus.TLE) {
+                errorMessage = "Time limit exceeded";
+            } else if (execResult.getStatus() == ExecutionStatus.MLE) {
+                errorMessage = "Memory limit exceeded";
+            } else if (execResult.getStatus() == ExecutionStatus.SUCCESS) {
+                passed = compareOutput(execResult.getOutput(), testCase.getExpectedOutput());
+            }
+            
+            if (passed) {
+                passedCount++;
+            }
+            
+            // Track max runtime and memory
+            if (execResult.getMetrics() != null) {
+                maxRuntimeMs = Math.max(maxRuntimeMs, 
+                    execResult.getMetrics().getRuntimeMs() != null ? execResult.getMetrics().getRuntimeMs().intValue() : 0);
+                maxMemoryKb = Math.max(maxMemoryKb, 
+                    execResult.getMetrics().getMemoryKb() != null ? execResult.getMetrics().getMemoryKb() : 0);
+            }
+            
+            // Create DTO (no ID since not persisted)
+            TestResultDTO resultDTO = new TestResultDTO(
+                null,  // No ID - not persisted
+                testCase.getId(),
+                passed,
+                testCase.getInput(),
+                testCase.getExpectedOutput(),
+                execResult.getOutput(),
+                errorMessage != null ? errorMessage : execResult.getErrorMessage(),
+                execResult.getMetrics() != null ? execResult.getMetrics().getRuntimeMs().intValue() : 0,
+                execResult.getMetrics() != null ? execResult.getMetrics().getMemoryKb().intValue() : 0,
+                false  // Not custom
+            );
+            
+            testResults.add(resultDTO);
+            
+            // Stop early if compilation error (no point running other tests)
+            if (execResult.getStatus() == ExecutionStatus.COMPILATION_ERROR) {
+                logger.info("Stopping run early due to compilation error");
+                break;
+            }
+        }
+        
+        logger.info("Run complete for problem {}: {}/{} passed", 
+            problemId, passedCount, sampleTestCases.size());
+        
+        return new RunResult(
+            problemId,
+            sampleTestCases.size(),
             passedCount,
             maxRuntimeMs,
             (int) maxMemoryKb,

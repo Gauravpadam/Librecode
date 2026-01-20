@@ -6,7 +6,7 @@ import ProblemLayout from '../components/problem-detail/ProblemLayout';
 import ProblemDescription from '../components/problem-detail/ProblemDescription';
 import CodeEditor from '../components/problem-detail/CodeEditor';
 import LanguageSelector from '../components/problem-detail/LanguageSelector';
-import TestResults from '../components/problem-detail/TestResults';
+import TestCasePanel from '../components/problem-detail/TestCasePanel';
 import SolutionsTab from '../components/problem-detail/SolutionsTab';
 
 function ProblemDetail() {
@@ -24,7 +24,7 @@ function ProblemDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [running, setRunning] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
-  const [testResults, setTestResults] = useState(null);
+  const [testResults, setTestResults] = useState([]);
   
   // Get active tab from URL query params
   const activeTab = searchParams.get('tab') || 'description';
@@ -131,8 +131,8 @@ function ProblemDetail() {
 
     try {
       setSubmitting(true);
-      setSubmissionResult(null);
-      setTestResults(null);
+      setSubmissionResult([]);
+      setTestResults([]);
       
       const response = await api.post(API_ENDPOINTS.SUBMISSIONS, {
         problemId: parseInt(id),
@@ -162,7 +162,7 @@ function ProblemDetail() {
     }
   };
 
-  // Handle code run (test without submitting)
+  // Handle code run (test against sample test cases only - no submission created)
   const handleRun = async () => {
     if (!code.trim()) {
       alert('Please write some code before running');
@@ -171,10 +171,11 @@ function ProblemDetail() {
 
     try {
       setRunning(true);
-      setTestResults(null);
+      setTestResults([]);
+      setSubmissionResult(null);  // Clear any previous submission result
       
-      // Use the same submission endpoint but could be a different endpoint for "run"
-      const response = await api.post(API_ENDPOINTS.SUBMISSIONS, {
+      // Use the /run endpoint - tests against sample cases only, no submission created
+      const response = await api.post(API_ENDPOINTS.SUBMISSIONS_RUN, {
         problemId: parseInt(id),
         code: code,
         language: selectedLanguage
@@ -260,40 +261,23 @@ function ProblemDetail() {
     );
   };
 
-  // Render right pane with CodeEditor and controls
+  // Render right pane with CodeEditor and TestCasePanel
   const renderRightPane = () => {
+    // Get sample test cases only
+    const sampleTestCases = testCases.filter(tc => tc.isSample);
+    
     return (
       <div className="flex flex-col h-full bg-slate-850">
-        {/* Editor header with language selector and actions */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800">
+        {/* Editor header with language selector */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700 bg-slate-800">
           <LanguageSelector
             selectedLanguage={selectedLanguage}
             onLanguageChange={handleLanguageChange}
           />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleRun}
-              disabled={running || submitting}
-              className="px-4 py-2 text-sm font-medium border border-slate-600 rounded-md 
-                       bg-slate-700 text-slate-200 hover:bg-slate-600 hover:border-primary 
-                       transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {running ? 'Running...' : 'Run'}
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || running}
-              className="px-4 py-2 text-sm font-medium rounded-md 
-                       bg-primary text-background hover:bg-primary/90 
-                       transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
         </div>
 
-        {/* Code Editor */}
-        <div className="flex-1 overflow-hidden">
+        {/* Code Editor - takes upper portion */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           <CodeEditor
             language={selectedLanguage}
             value={code}
@@ -302,14 +286,19 @@ function ProblemDetail() {
           />
         </div>
 
-        {/* Test Results */}
-        {testResults && testResults.length > 0 && (
-          <div className="border-t border-slate-700 max-h-80 overflow-y-auto">
-            <TestResults results={testResults} isLoading={running || submitting} />
-          </div>
-        )}
+        {/* Test Case Panel - takes lower portion (fixed height) */}
+        <div className="h-64 min-h-[200px] max-h-[300px]">
+          <TestCasePanel
+            sampleTestCases={sampleTestCases}
+            testResults={testResults}
+            isRunning={running}
+            isSubmitting={submitting}
+            onRun={handleRun}
+            onSubmit={handleSubmit}
+          />
+        </div>
 
-        {/* Submission Result Summary */}
+        {/* Submission Result Summary (shown after submit) */}
         {submissionResult && (
           <div className="border-t border-slate-700 bg-slate-800 px-4 py-3">
             <div className="flex items-center justify-between text-sm">

@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   
   // Submissions
   SUBMISSIONS: '/submissions',
+  SUBMISSIONS_RUN: '/submissions/run',  // Run against sample test cases only
   SUBMISSION_DETAIL: (id) => `/submissions/${id}`,
   SUBMISSION_STATS: '/submissions/stats',
   

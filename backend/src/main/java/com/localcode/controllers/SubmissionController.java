@@ -40,8 +40,45 @@ public class SubmissionController {
     }
     
     /**
+     * Run code against sample test cases only (no submission created).
+     * This is for testing/debugging before submitting.
+     *
+     * @param request the run request (same as submission request)
+     * @return ResponseEntity with test results for sample cases only
+     */
+    @PostMapping("/run")
+    public ResponseEntity<?> runCode(@Valid @RequestBody SubmissionRequest request) {
+        try {
+            User currentUser = getCurrentUser();
+            
+            logger.info("Running code for problem {} by user {}", request.getProblemId(), currentUser.getUsername());
+            
+            // Run against sample test cases only (no submission created)
+            RunResult result = evaluationService.runAgainstSampleCases(
+                request.getProblemId(),
+                request.getCode(),
+                request.getLanguage(),
+                currentUser.getId()
+            );
+            
+            logger.info("Run completed for problem {}: {}/{} passed", 
+                request.getProblemId(), result.getPassedCount(), result.getTotalCount());
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Error running code", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Failed to run code: " + e.getMessage()));
+        }
+    }
+    
+    /**
      * Submit a solution for evaluation.
-     * Creates a submission and triggers asynchronous evaluation.
+     * Creates a submission and triggers asynchronous evaluation against ALL test cases.
      *
      * @param request the submission request
      * @return ResponseEntity with submission DTO
