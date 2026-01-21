@@ -25,7 +25,8 @@ function ProblemDetail() {
   const [running, setRunning] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [testResults, setTestResults] = useState([]);
-  
+  const [submissionId, setSubmissionId] = useState(null);
+
   // Get active tab from URL query params
   const activeTab = searchParams.get('tab') || 'description';
 
@@ -52,6 +53,54 @@ function ProblemDetail() {
       localStorage.setItem(`problem_${id}_${selectedLanguage}`, code);
     }
   }, [code, id, selectedLanguage, problem]);
+
+  // Polling for submission response
+  useEffect(()=>{
+    if (!submissionId) return;
+
+    let cancelled = false;
+
+    const pollSubmission = async () => {
+      try{
+        const res = await api.get(API_ENDPOINTS.SUBMISSION_DETAIL(submissionId));
+
+        if (cancelled) return;
+
+        const data = res.data;
+
+        setSubmissionResult(data);
+        
+        if (data.status !== 'PENDING'){
+          if (data.testResults){
+            const formattedResults = data.testResults.map(tr => ({
+              passed: tr.passed,
+              actual: tr.actualOutput,
+              expected: tr.expectedOutput,
+              error: tr.errorMessage,
+              runtime: tr.runtimeMs,
+              testCaseId: tr.testCaseId
+            }));
+            setTestResults(formattedResults);
+          }
+
+          setSubmitting(false);
+          return;
+
+        }
+
+        setTimeout(pollSubmission, 1500);
+      } catch (e) {
+          console.error('Polling Failed', e);
+          setTimeout(pollSubmission, 3000);
+        }
+    };
+
+    pollSubmission();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [submissionId]);
 
   // Fetch problem details from API
   const fetchProblemDetails = async () => {
@@ -140,25 +189,11 @@ function ProblemDetail() {
         language: selectedLanguage
       });
 
-      setSubmissionResult(response.data);
-      
-      // Convert test results to TestResults component format
-      if (response.data.testResults) {
-        const formattedResults = response.data.testResults.map(tr => ({
-          passed: tr.passed,
-          input: tr.input,
-          expected: tr.expectedOutput,
-          actual: tr.actualOutput,
-          error: tr.errorMessage,
-          runtime: tr.runtimeMs,
-        }));
-        setTestResults(formattedResults);
-      }
+      setSubmissionId(response.data.id);
+      setSubmissionResult({status: response.data.status});
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit solution');
       console.error('Error submitting solution:', err);
-    } finally {
-      setSubmitting(false);
     }
   };
 
