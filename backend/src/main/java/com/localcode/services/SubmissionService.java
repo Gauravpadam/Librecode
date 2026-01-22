@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * Service for managing submissions.
@@ -233,9 +234,27 @@ public class SubmissionService {
      * Convert Submission entity to SubmissionDetailDTO with test results.
      */
     private SubmissionDetailDTO convertToDetailDTO(Submission submission, List<TestResult> testResults) {
+
+        // Map of id vs tc for lookups
+        Map<Long, TestCase> testCaseMap =
+            submission.getProblem().getTestCases()
+                .stream()
+                .collect(Collectors.toMap(TestCase::getId, tc -> tc));
+
         List<TestResultDTO> testResultDTOs = testResults.stream()
             .map(this::convertTestResultToDTO)
             .collect(Collectors.toList());
+
+        
+        for (TestResultDTO dto : testResultDTOs) {
+        // Lookup tc against it's dto's tc id. This ensures each dto is assigned the correct testcase details (order agnostic lookup)
+        TestCase tc = testCaseMap.get(dto.getTestCaseId());
+        if (tc != null) {
+            dto.setInput(tc.getInput());
+            dto.setExpectedOutput(tc.getExpectedOutput());
+        }
+    }
+
         
         int totalTests = testResults.size();
         int passedTests = (int) testResults.stream().filter(TestResult::getPassed).count();
@@ -260,19 +279,18 @@ public class SubmissionService {
      * Convert TestResult entity to TestResultDTO.
      */
     private TestResultDTO convertTestResultToDTO(TestResult testResult) {
-        // Note: We'll need to fetch the actual test case to get input/expected output
-        // For now, we'll set these to null and let EvaluationService populate them
+
         return new TestResultDTO(
             testResult.getId(),
             testResult.getTestCaseId(),
             testResult.getPassed(),
-            null,  // Will be populated by EvaluationService
-            null,  // Will be populated by EvaluationService
-            testResult.getActualOutput(),
+            null,  // Populated
+            null,  // Populated
+            testResult.getActualOutput(), // This is the one which evalSvc actually populates :/
             testResult.getErrorMessage(),
             testResult.getRuntimeMs(),
             testResult.getMemoryKb(),
-            false  // Will be determined by EvaluationService
+            false  // Populated
         );
     }
 }

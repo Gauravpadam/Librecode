@@ -26,6 +26,7 @@ function ProblemDetail() {
   const [submissionResult, setSubmissionResult] = useState(null);
   const [testResults, setTestResults] = useState([]);
   const [submissionId, setSubmissionId] = useState(null);
+  const [toggleViewAllResults, setToggleViewAllResults] = useState(false);
 
   // Get active tab from URL query params
   const activeTab = searchParams.get('tab') || 'description';
@@ -67,13 +68,18 @@ function ProblemDetail() {
         if (cancelled) return;
 
         const data = res.data;
+        console.log(data);
+        
 
         setSubmissionResult(data);
         
         if (data.status !== 'PENDING'){
           if (data.testResults){
+            console.log(data.testResults);
+            
             const formattedResults = data.testResults.map(tr => ({
               passed: tr.passed,
+              input: tr.input,
               actual: tr.actualOutput,
               expected: tr.expectedOutput,
               error: tr.errorMessage,
@@ -81,6 +87,7 @@ function ProblemDetail() {
               testCaseId: tr.testCaseId
             }));
             setTestResults(formattedResults);
+            setToggleViewAllResults(true);
           }
 
           setSubmitting(false);
@@ -180,6 +187,7 @@ function ProblemDetail() {
 
     try {
       setSubmitting(true);
+      setToggleViewAllResults(false);
       setSubmissionResult([]);
       setTestResults([]);
       
@@ -206,6 +214,7 @@ function ProblemDetail() {
 
     try {
       setRunning(true);
+      setToggleViewAllResults(false);
       setTestResults([]);
       setSubmissionResult(null);  // Clear any previous submission result
       
@@ -227,6 +236,7 @@ function ProblemDetail() {
           runtime: tr.runtimeMs,
         }));
         setTestResults(formattedResults);
+        setToggleViewAllResults(true);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to run code');
@@ -330,6 +340,7 @@ function ProblemDetail() {
             isSubmitting={submitting}
             onRun={handleRun}
             onSubmit={handleSubmit}
+            toggleViewAllResults={toggleViewAllResults}
           />
         </div>
 

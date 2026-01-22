@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
  * Shows pass/fail status with color coding (emerald for pass, red for fail)
  * Applies monospace font to code display
  */
-function TestResults({ results = [], isLoading = false, className = '' }) {
+function TestResults({ results = [], isLoading = false, showFailed = false, className = '' }) {
   if (isLoading) {
     return (
       <div className={`bg-slate-800 rounded-lg p-4 ${className}`}>
@@ -31,6 +31,10 @@ function TestResults({ results = [], isLoading = false, className = '' }) {
   const passedCount = results.filter(r => r.passed).length;
   const totalCount = results.length;
   const allPassed = passedCount === totalCount;
+  const firstFailedIdx = results.findIndex(r => r.passed === false);
+
+  console.log(results[firstFailedIdx]);
+  
 
   return (
     <div className={`bg-slate-800 rounded-lg ${className}`}>
@@ -49,7 +53,78 @@ function TestResults({ results = [], isLoading = false, className = '' }) {
       </div>
 
       {/* Test case results */}
-      <div className="divide-y divide-slate-700">
+      {firstFailedIdx && showFailed ? (
+        // Return details of this failed testcase
+        <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-slate-200">
+                    Test Case {firstFailedIdx + 1}
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                    'bg-red-500/20 text-red-500'
+                  }`}>
+                    {'FAILED'}
+                  </span>
+                </div>
+
+                {/* Input */}
+                {results[firstFailedIdx].input !== undefined && (
+                  <div className="mb-2">
+                    <span className="text-xs text-slate-400">Input:</span>
+                    <pre className="mt-1 text-sm font-mono text-slate-300 bg-slate-900 rounded px-2 py-1 overflow-x-auto">
+                      {typeof results[firstFailedIdx].input === 'string' ? results[firstFailedIdx].input : JSON.stringify(results[firstFailedIdx].input)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Expected output */}
+                {results[firstFailedIdx].expected !== undefined && (
+                  <div className="mb-2">
+                    <span className="text-xs text-slate-400">Expected:</span>
+                    <pre className="mt-1 text-sm font-mono text-emerald-500 bg-slate-900 rounded px-2 py-1 overflow-x-auto">
+                      {typeof results[firstFailedIdx].expected === 'string' ? results[firstFailedIdx].expected : JSON.stringify(results[firstFailedIdx].expected)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Actual output */}
+                {results[firstFailedIdx].actual !== undefined && (
+                  <div className="mb-2">
+                    <span className="text-xs text-slate-400">Actual:</span>
+                    <pre className={`mt-1 text-sm font-mono rounded px-2 py-1 overflow-x-auto ${
+                      results.passed 
+                        ? 'text-emerald-500 bg-slate-900' 
+                        : 'text-red-500 bg-slate-900'
+                    }`}>
+                      {typeof results[firstFailedIdx].actual === 'string' ? results[firstFailedIdx].actual : JSON.stringify(results[firstFailedIdx].actual)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Error message */}
+                {results[firstFailedIdx].error && (
+                  <div className="mt-2">
+                    <span className="text-xs text-red-400">Error:</span>
+                    <pre className="mt-1 text-sm font-mono text-red-400 bg-slate-900 rounded px-2 py-1 overflow-x-auto">
+                      {results[firstFailedIdx].error}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Runtime info */}
+                {(results[firstFailedIdx].runtime || results[firstFailedIdx].memory) && (
+                  <div className="mt-2 flex gap-4 text-xs text-slate-400">
+                    {results[firstFailedIdx].runtime && (
+                      <span>Runtime: {results[firstFailedIdx].runtime}ms</span>
+                    )}
+                    {results[firstFailedIdx].memory && (
+                      <span>Memory: {results[firstFailedIdx].memory}MB</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+      ) : (     <div className="divide-y divide-slate-700">
         {results.map((result, index) => (
           <div key={index} className="p-4">
             <div className="flex items-start gap-3">
@@ -144,7 +219,7 @@ function TestResults({ results = [], isLoading = false, className = '' }) {
             </div>
           </div>
         ))}
-      </div>
+      </div>)}
     </div>
   );
 }

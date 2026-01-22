@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import TestResults from './TestResults';
 
 /**
  * TestCasePanel - Shows sample test cases below the code editor
@@ -12,7 +13,8 @@ function TestCasePanel({
   isRunning = false,
   isSubmitting = false,
   onRun,
-  onSubmit 
+  onSubmit,
+  toggleViewAllResults
 }) {
 
     const [activeCase, setActiveCase] = useState(0);
@@ -96,7 +98,10 @@ function TestCasePanel({
       </div>
 
       {/* Test case content */}
-      <div className="flex-1 overflow-auto p-4">
+      { testResults.length > 0 && toggleViewAllResults ? (
+        <TestResults results={testResults} showFailed={true}/>
+      ) : (
+         <div className="flex-1 overflow-auto p-4">
         {displayCases.length === 0 ? (
           <div className="text-slate-400 text-sm text-center py-8">
             No sample test cases available
@@ -163,6 +168,7 @@ function TestCasePanel({
           </div>
         ) : null}
       </div>
+      ) }
 
       {/* Summary bar (shown after running) */}
       {testResults.length > 0 && (
