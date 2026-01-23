@@ -33,7 +33,7 @@ function TestResults({ results = [], isLoading = false, showFailed = false, clas
   const allPassed = passedCount === totalCount;
   const firstFailedIdx = results.findIndex(r => r.passed === false);
 
-  console.log(results[firstFailedIdx]);
+  // console.log(results[firstFailedIdx]);
   
 
   return (
@@ -53,7 +53,7 @@ function TestResults({ results = [], isLoading = false, showFailed = false, clas
       </div>
 
       {/* Test case results */}
-      {firstFailedIdx !== -1 && showFailed ? (
+      {firstFailedIdx !== -1  && showFailed ? (
         // Return details of this failed testcase
         <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">

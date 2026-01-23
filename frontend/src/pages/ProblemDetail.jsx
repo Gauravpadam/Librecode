@@ -74,6 +74,7 @@ function ProblemDetail() {
         if (data.status !== 'PENDING'){
           if (data.testResults){  
             const formattedResults = data.testResults.map(tr => ({
+              testCaseId: tr.testCaseId,
               passed: tr.passed,
               input: tr.input,
               actual: tr.actualOutput,
@@ -221,9 +222,13 @@ function ProblemDetail() {
         language: selectedLanguage
       });
 
+      console.log(response.data);
+      
+
       // Convert test results to TestResults component format
       if (response.data.testResults) {
         const formattedResults = response.data.testResults.map(tr => ({
+          testCaseId: tr.testCaseId,
           passed: tr.passed,
           input: tr.input,
           expected: tr.expectedOutput,
@@ -232,7 +237,6 @@ function ProblemDetail() {
           runtime: tr.runtimeMs,
         }));
         setTestResults(formattedResults);
-        setToggleViewAllResults(true);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to run code');

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import TestResults from './TestResults';
 
@@ -19,20 +19,29 @@ function TestCasePanel({
 
     const [activeCase, setActiveCase] = useState(0);
 
+    const resultsById = useMemo(() => {
+      return Object.fromEntries(
+      testResults.map(r => [r.testCaseId, r])
+      );
+    }, [testResults]);
 
-    const resultsById = Object.fromEntries(testResults.map(r => [r.testCaseId, r]));
+    const displayCases = useMemo(() => {
+      return sampleTestCases
+        .slice(0, 3)
+        .map(tc => ({
+          ...tc,
+          result: resultsById[tc.id] || null
+        }));
+    }, [sampleTestCases, resultsById]);
+
+    const activeTestCase = displayCases[activeCase] ?? null;
+    const activeResult = activeTestCase?.result ?? null;
+
+    console.log(activeResult);
+    
 
   
-    const displayCases = sampleTestCases.slice(0, 3).map(tc => ({
-    ...tc,
-    result: resultsById[tc.id]
-    }));
-
-
-  
-  // Find result for active case
-    const activeTestCase = displayCases[activeCase];
-    const activeResult = activeTestCase?.result;
+    
   return (
     
     <div className="flex flex-col h-full bg-slate-850 border-t border-slate-700">
@@ -44,6 +53,8 @@ function TestCasePanel({
             const result = tc.result;
             const hasResult = !!result;
             const passed = result?.passed;
+
+            
 
             return (
               <button
