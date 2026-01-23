@@ -67,16 +67,12 @@ function ProblemDetail() {
 
         if (cancelled) return;
 
-        const data = res.data;
-        console.log(data);
-        
+        const data = res.data; 
 
         setSubmissionResult(data);
         
         if (data.status !== 'PENDING'){
-          if (data.testResults){
-            console.log(data.testResults);
-            
+          if (data.testResults){  
             const formattedResults = data.testResults.map(tr => ({
               passed: tr.passed,
               input: tr.input,
@@ -345,7 +341,7 @@ function ProblemDetail() {
         </div>
 
         {/* Submission Result Summary (shown after submit) */}
-        {submissionResult && (
+        {!toggleViewAllResults && submissionResult && (
           <div className="border-t border-slate-700 bg-slate-800 px-4 py-3">
             <div className="flex items-center justify-between text-sm">
               <span className={`font-semibold ${

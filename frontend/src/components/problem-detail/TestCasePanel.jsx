@@ -34,11 +34,13 @@ function TestCasePanel({
     const activeTestCase = displayCases[activeCase];
     const activeResult = activeTestCase?.result;
   return (
+    
     <div className="flex flex-col h-full bg-slate-850 border-t border-slate-700">
       {/* Tab bar with test case tabs and action buttons */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700 bg-slate-800">
         <div className="flex items-center gap-1">
-          {displayCases.map((tc, index) => {
+          {/* Hacky but works: Will figure out a better way to hide it TODO */}
+          {!toggleViewAllResults && displayCases.map((tc, index) => {
             const result = tc.result;
             const hasResult = !!result;
             const passed = result?.passed;
@@ -171,7 +173,7 @@ function TestCasePanel({
       ) }
 
       {/* Summary bar (shown after running) */}
-      {testResults.length > 0 && (
+      {!toggleViewAllResults && testResults.length > 0 && (
         <div className="px-4 py-2 border-t border-slate-700 bg-slate-800">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-400">
