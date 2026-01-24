@@ -14,11 +14,24 @@ function Layout() {
         <Outlet />
       </main>
       
-      <footer className="bg-slate-850 border-t border-slate-700 text-slate-400 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm">© 2025 LocalCode. Self-hosted coding practice platform.</p>
-        </div>
-      </footer>
+     <footer className="bg-slate-850 border-t border-slate-700 text-slate-400 py-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2">
+      
+      <p className="text-sm">
+        Built in the open.
+      </p>
+
+      <nav className="text-sm flex justify-center gap-3">
+        <a href="https://github.com/Gauravpadam/Librecode" className="hover:text-slate-200 transition">Contribute</a>
+        <span>•</span>
+        <a href="https://github.com/Gauravpadam/Librecode/issues" className="hover:text-slate-200 transition">Issues</a>
+        <span>•</span>
+        <a href="#" className="hover:text-slate-200 transition">Discussions (soon)</a>
+      </nav>
+
+    </div>
+  </footer>
+ 
     </div>
   );
 }
