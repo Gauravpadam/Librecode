@@ -53,9 +53,9 @@ function TestResults({ results = [], isLoading = false, showFailed = false, clas
       </div>
 
       {/* Test case results */}
-      {firstFailedIdx !== -1  && showFailed ? (
-        // Return details of this failed testcase
-        <div className="flex-1 min-w-0">
+      {showFailed ? (
+        firstFailedIdx !== -1 ? (
+          <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm font-medium text-slate-200">
                     Test Case {firstFailedIdx + 1}
@@ -123,6 +123,10 @@ function TestResults({ results = [], isLoading = false, showFailed = false, clas
                   </div>
                 )}
               </div>
+        ) : (
+            null
+        )
+        // Return details of this failed testcase
 
       ) : (     <div className="divide-y divide-slate-700">
         {results.map((result, index) => (
