@@ -1,77 +1,124 @@
-# LocalCode Docker Execution Environments
+# LocalCode Runtimes
 
-Docker images for secure code execution in isolated containers.
+Docker images for running user-submitted code safely.
 
-## Images
+## The problem
 
-- `Dockerfile.java` - Java 17 execution environment
-- `Dockerfile.python` - Python 3.11 execution environment
-- `Dockerfile.javascript` - Node.js 18 execution environment
+When users submit code, we need to run it. But running arbitrary code is dangerous — someone could try to delete files, mine crypto, or do other nasty things.
 
-## Building Images
+The solution: run each submission in a fresh, isolated Docker container with strict limits. No network access, limited CPU and memory, read-only filesystem. The container runs the code, captures the output, and gets destroyed.
 
-From the `localcode/docker` directory:
+## Available runtimes
+
+| Dockerfile | Language | Version |
+|------------|----------|---------|
+| `Dockerfile.java` | Java | 17 |
+| `Dockerfile.python` | Python | 3.11 |
+| `Dockerfile.javascript` | Node.js | 18 |
+
+## Building the images
+
+From the project root:
 
 ```bash
-# Build all images
-docker build -t localcode-java:latest -f Dockerfile.java .
-docker build -t localcode-python:latest -f Dockerfile.python .
-docker build -t localcode-javascript:latest -f Dockerfile.javascript .
+make runtime-build
 ```
 
-Or from the root `localcode` directory using the Makefile:
+Or manually:
+
 ```bash
-make docker-build
+docker build -t localcode-java:latest -f runtimes/Dockerfile.java .
+docker build -t localcode-python:latest -f runtimes/Dockerfile.python .
+docker build -t localcode-javascript:latest -f runtimes/Dockerfile.javascript .
 ```
 
-## Security Features
+## How execution works
 
-All containers are configured with the following security measures:
+When the backend receives a submission:
 
-### Container-Level Security
-- **Non-root user execution**: Runs as `nobody` user
-- **No network access**: Network mode set to `none`
-- **Read-only file system**: Root filesystem is read-only (except /tmp for code execution)
-- **Limited processes**: Maximum 50 processes per container
-- **All capabilities dropped**: No Linux capabilities granted
-
-### Resource Limits (enforced by backend)
-- **CPU**: 1 core maximum (100000 microseconds per 100ms period)
-- **Memory**: Configurable per problem (default 256MB)
-- **Time**: Configurable per problem (default 2 seconds)
-- **Container lifetime**: Maximum 30 seconds
-- **Code size**: Maximum 50KB
-- **Test case size**: Maximum 10KB per test case
-
-### Execution Isolation
-- Each code execution runs in a fresh container
-- Containers are destroyed immediately after execution
-- No data persists between executions
-- No access to host file system or other containers
-
-## Usage
-
-The Docker images are used automatically by the `CodeExecutorService` in the backend. The service:
-
-1. Creates a container with security and resource limits
-2. Copies the user's code and test input to `/tmp/code`
-3. Executes the code with timeout enforcement
-4. Captures output, errors, and resource metrics
+1. It creates a container from the appropriate image
+2. Copies the user's code and test input to `/tmp/code` inside the container
+3. Runs the code with a timeout
+4. Captures stdout, stderr, and resource usage
 5. Destroys the container
 
-## Testing Images
+Each execution is completely isolated. Nothing persists between runs.
 
-You can test the images manually:
+## Security measures
+
+These containers are locked down:
+
+**No network**
+- Network mode is set to `none`
+- Code can't make HTTP requests or connect to anything
+
+**No privileges**
+- Runs as `nobody` user
+- All Linux capabilities dropped
+- Can't escalate privileges
+
+**Limited resources**
+- CPU: 1 core max
+- Memory: 256MB default (configurable per problem)
+- Time: 2 seconds default (configurable per problem)
+- Max 50 processes
+
+**Restricted filesystem**
+- Root filesystem is read-only
+- Only `/tmp` is writable (for the code)
+- No access to host filesystem
+
+**Short-lived**
+- Containers are destroyed after 30 seconds max
+- No data persists
+
+## Resource limits
+
+The backend enforces these limits (configurable in `application.properties`):
+
+| Resource | Default | Max |
+|----------|---------|-----|
+| Time | 2 seconds | 5 seconds |
+| Memory | 256 MB | 256 MB |
+| Code size | 50 KB | 50 KB |
+| Test case size | 10 KB | 10 KB |
+| Container lifetime | 30 seconds | 30 seconds |
+
+Problems can have custom time limits (Easy: 2s, Medium: 3s, Hard: 5s).
+
+## Testing an image
+
+You can poke around inside a container:
 
 ```bash
-# Java
 docker run --rm -it localcode-java:latest bash
-
-# Python
 docker run --rm -it localcode-python:latest bash
-
-# JavaScript
 docker run --rm -it localcode-javascript:latest bash
 ```
 
-Note: The containers run as `nobody` user, so you have limited permissions.
+Note: You'll be the `nobody` user with limited permissions. That's intentional.
+
+## Adding a new language
+
+To add support for a new language:
+
+1. Create a new Dockerfile in this directory (e.g., `Dockerfile.rust`)
+2. Install the language runtime
+3. Set up a non-root user
+4. Update the backend's `CodeExecutorService` to handle the new language
+5. Add starter code templates in the `DataSeeder`
+
+The Dockerfile should follow the same pattern as the existing ones — minimal base image, non-root user, no unnecessary tools.
+
+## Why Docker and not something else?
+
+Docker gives us:
+- Process isolation
+- Resource limits (cgroups)
+- Network isolation
+- Filesystem isolation
+- Easy cleanup
+
+We could use other sandboxing approaches (seccomp, gVisor, Firecracker), but Docker is simple, well-understood, and good enough for a self-hosted practice platform.
+
+For a production system handling untrusted code at scale, you'd want additional layers of isolation.

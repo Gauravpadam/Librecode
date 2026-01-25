@@ -22,9 +22,9 @@ function Layout() {
       </p>
 
       <nav className="text-sm flex justify-center gap-3">
-        <a href="https://github.com/Gauravpadam/Librecode" className="hover:text-slate-200 transition">Contribute</a>
+        <a href="https://github.com/Gauravpadam/Localcode" className="hover:text-slate-200 transition">Contribute</a>
         <span>•</span>
-        <a href="https://github.com/Gauravpadam/Librecode/issues" className="hover:text-slate-200 transition">Issues</a>
+        <a href="https://github.com/Gauravpadam/Localcode/issues" className="hover:text-slate-200 transition">Issues</a>
         <span>•</span>
         <a href="#" className="hover:text-slate-200 transition">Discussions (soon)</a>
       </nav>

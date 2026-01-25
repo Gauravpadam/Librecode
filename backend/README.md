@@ -1,74 +1,69 @@
 # LocalCode Backend
 
-Spring Boot backend application for LocalCode coding practice platform.
+The Spring Boot API that powers LocalCode. It handles user authentication, stores problems and submissions, and orchestrates code execution in Docker containers.
 
-## Technology Stack
+## How it fits together
 
-- **Java**: 17+
-- **Spring Boot**: 3.2.0
-- **Database**: PostgreSQL 15+
-- **Build Tool**: Maven
-- **Security**: Spring Security with JWT
-- **Code Execution**: Docker Java Client
+When a user submits code, here's what happens:
 
-## Project Structure
+1. The frontend sends the code to this backend
+2. The backend validates the request (is the user logged in? is the code too large?)
+3. It spins up a Docker container with the appropriate runtime (Java, Python, or JS)
+4. The code runs against test cases inside that container
+5. Results come back, the container gets destroyed, and the user sees their score
+
+All of this happens in a few seconds.
+
+## Project structure
 
 ```
-src/
-├── main/
-│   ├── java/com/localcode/
-│   │   ├── LocalCodeApplication.java    # Main application class
-│   │   ├── config/                      # Configuration classes
-│   │   ├── controllers/                 # REST API controllers
-│   │   ├── services/                    # Business logic layer
-│   │   ├── persistence/                 # Data access layer
-│   │   │   ├── entity/                  # JPA entities
-│   │   │   └── repository/              # Spring Data repositories
-│   │   ├── dto/                         # Data Transfer Objects
-│   │   ├── security/                    # Security components
-│   │   └── exception/                   # Custom exceptions
-│   └── resources/
-│       ├── application.properties       # Default configuration
-│       ├── application-dev.properties   # Development profile
-│       └── application-prod.properties  # Production profile
-└── test/
-    ├── java/com/localcode/             # Test classes
-    └── resources/
-        └── application-test.properties  # Test configuration
+src/main/java/com/localcode/
+├── LocalCodeApplication.java    # Entry point
+├── config/                      # Configuration (security, database, rate limiting)
+├── controllers/                 # REST endpoints
+├── services/                    # Business logic
+├── persistence/
+│   ├── entity/                  # JPA entities (User, Problem, Submission, etc.)
+│   └── repository/              # Spring Data repositories
+├── dto/                         # Request/response objects
+├── security/                    # JWT filter and auth components
+└── exception/                   # Custom exceptions and error handling
 ```
 
 ## Prerequisites
 
-- Java 17 or higher
+- Java 17+
 - Maven 3.6+
-- PostgreSQL 15+ (or use Docker Compose)
+- PostgreSQL 15+ (or just use Docker Compose from the root)
 - Docker (for code execution)
+
+## Running locally
+
+The easiest way is to start PostgreSQL via Docker Compose from the project root:
+
+```bash
+# From the root directory
+docker-compose up -d postgres
+```
+
+Then run the backend:
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The API will be available at `http://localhost:8080/api`.
 
 ## Configuration
 
-### Database Setup
+There are three property files in `src/main/resources/`:
 
-The application requires a PostgreSQL database. You can either:
+- `application.properties` — defaults
+- `application-dev.properties` — development settings
+- `application-prod.properties` — production (uses environment variables)
 
-1. **Use Docker Compose** (recommended for development):
-   ```bash
-   cd ..
-   docker-compose up -d postgres
-   ```
-
-2. **Use local PostgreSQL**:
-   - Create a database named `localcode`
-   - Update `application.properties` with your credentials
-
-### Application Properties
-
-Configuration files are located in `src/main/resources/`:
-
-- `application.properties` - Default configuration
-- `application-dev.properties` - Development profile (uses Docker Compose services)
-- `application-prod.properties` - Production profile (uses environment variables)
-
-Key configuration properties:
+Key settings you might want to change:
 
 ```properties
 # Database
@@ -76,46 +71,71 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/localcode
 spring.datasource.username=localcode
 spring.datasource.password=localcode
 
-# JWT
+# JWT (change this in production!)
 jwt.secret=your-secret-key-change-this-in-production
 jwt.expiration=3600000
 
-# Docker
+# Docker socket for code execution
 docker.host=unix:///var/run/docker.sock
+
+# Code execution limits
+execution.limits.default-time-limit-ms=2000
+execution.limits.default-memory-limit-mb=256
+execution.limits.max-code-size-kb=50
 ```
 
-## Building and Running
+## API endpoints
 
-### Development Mode
+### Authentication
+- `POST /api/auth/register` — Create account
+- `POST /api/auth/login` — Get JWT token
 
-```bash
-# Build the project
-mvn clean install
+### Problems
+- `GET /api/problems` — List all problems
+- `GET /api/problems/{id}` — Get problem details with test cases
+- `POST /api/problems` — Create a problem (admin)
 
-# Run with development profile
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+### Submissions
+- `POST /api/submissions` — Submit a solution
+- `GET /api/submissions` — Your submission history
+- `GET /api/submissions/{id}` — Submission details with test results
 
-# Or run the JAR
-java -jar target/localcode-backend-1.0.0.jar --spring.profiles.active=dev
-```
+### Test Cases
+- `POST /api/testcases/custom` — Add a custom test case
+- `GET /api/testcases/custom/problem/{problemId}` — Get your custom test cases
+- `DELETE /api/testcases/custom/{id}` — Delete a custom test case
 
-### Production Mode
+Most endpoints require a JWT token in the `Authorization: Bearer <token>` header.
 
-```bash
-# Build the project
-mvn clean package -DskipTests
+## Database seeding
 
-# Run with production profile
-java -jar target/localcode-backend-1.0.0.jar --spring.profiles.active=prod
-```
+When the backend starts with an empty database, it automatically creates sample data:
 
-### Using Docker Compose
+- 3 test users (`testuser`, `johndoe`, `admin`)
+- 13 coding problems (5 Easy, 5 Medium, 3 Hard)
+- Test cases for each problem
 
-```bash
-# From the project root
-cd ..
-docker-compose up backend
-```
+This only happens once. If you want to re-seed, clear the tables and restart.
+
+## Rate limiting
+
+The API has built-in rate limiting to prevent abuse:
+
+- 10 submissions per minute per user
+- 100 general API requests per minute per user
+
+When you hit the limit, you'll get a `429 Too Many Requests` response with headers telling you when to retry.
+
+## Input validation
+
+All inputs are validated:
+
+- Code submissions: max 50KB
+- Test case inputs/outputs: max 10KB each
+- Passwords: minimum 8 characters
+- Usernames: 3-50 characters
+
+Invalid requests get a `400 Bad Request` with details about what's wrong.
 
 ## Testing
 
@@ -123,81 +143,51 @@ docker-compose up backend
 # Run all tests
 mvn test
 
-# Run tests with coverage
+# Run with coverage report
 mvn test jacoco:report
-
-# Run specific test class
-mvn test -Dtest=LocalCodeApplicationTests
 ```
 
-## API Documentation
+Tests use an in-memory H2 database, so you don't need PostgreSQL running.
 
-Once the application is running, the API will be available at:
-- Base URL: `http://localhost:8080/api`
+## Building for production
 
-Main endpoints:
-- `/api/auth/*` - Authentication endpoints
-- `/api/problems/*` - Problem management
-- `/api/submissions/*` - Code submission and evaluation
-- `/api/testcases/*` - Custom test case management
+```bash
+mvn clean package -DskipTests
+java -jar target/localcode-backend-1.0.0.jar --spring.profiles.active=prod
+```
 
-## Development
+In production, set these environment variables:
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `JWT_SECRET` (use a strong, random key)
 
-### Three-Tier Architecture
+## Tech stack
 
-The application follows a three-tier architecture:
-
-1. **Controllers** (`controllers/`) - Handle HTTP requests and responses
-2. **Services** (`services/`) - Implement business logic
-3. **Persistence** (`persistence/`) - Data access and JPA entities
-
-### Adding New Features
-
-1. Create entity in `persistence/entity/`
-2. Create repository in `persistence/repository/`
-3. Create DTOs in `dto/`
-4. Implement service in `services/`
-5. Create controller in `controllers/`
-6. Add tests in `src/test/`
-
-## Dependencies
-
-Key dependencies configured in `pom.xml`:
-
-- Spring Boot Starter Web
-- Spring Boot Starter Security
-- Spring Boot Starter Data JPA
-- PostgreSQL Driver
-- JWT (jjwt)
-- Docker Java Client
+- Spring Boot 3.2
+- Spring Security with JWT (jjwt 0.12.3)
+- Spring Data JPA
+- PostgreSQL
+- Docker Java Client 3.3.4
+- Bucket4j for rate limiting
 - Lombok (optional)
 
 ## Troubleshooting
 
-### Database Connection Issues
+**"Cannot connect to database"**
 
-- Verify PostgreSQL is running: `docker-compose ps`
-- Check database credentials in `application.properties`
-- Ensure database `localcode` exists
+Make sure PostgreSQL is running. If using Docker Compose:
+```bash
+docker-compose ps
+```
 
-### Docker Connection Issues
+**"Docker socket not found"**
 
-- Verify Docker daemon is running: `docker ps`
-- Check Docker socket path in configuration
-- Ensure user has Docker permissions
+The backend needs Docker access to run code. Check that:
+1. Docker is running
+2. The `docker.host` property points to the right socket
+3. Your user has permission to access Docker
 
-### Port Already in Use
+**"JWT signature does not match"**
 
-- Change server port in `application.properties`:
-  ```properties
-  server.port=8081
-  ```
-
-## Next Steps
-
-After setting up the backend:
-
-1. Implement database entities (Task 4)
-2. Set up authentication system (Task 5)
-3. Implement problem management (Task 6)
-4. Build code execution engine (Task 8)
+The JWT secret changed between when the token was issued and now. Log in again to get a fresh token.

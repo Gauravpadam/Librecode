@@ -1,109 +1,223 @@
 # LocalCode
 
-A self-hosted coding practice platform similar to LeetCode for offline environments.
+A self-hosted coding practice platform. Think LeetCode, but running on your own machine.
 
-## Project Structure
+## What is this?
+
+LocalCode lets you practice coding problems offline. You get a problem, write your solution, hit submit, and the platform runs your code against test cases — all without touching the internet.
+
+It's useful if you're preparing for interviews, teaching a class, or just want a private space to sharpen your skills.
+
+## How it works
+
+The platform has three main pieces:
+
+1. A **React frontend** where you browse problems and write code
+2. A **Spring Boot backend** that handles authentication, stores problems, and orchestrates everything
+3. **Docker containers** that execute your code in isolation (so your solution can't accidentally `rm -rf` anything important)
+
+When you submit a solution, the backend spins up a fresh container, runs your code against the test cases, captures the output, and tears down the container. Each execution is completely isolated.
+
+## Project structure
 
 ```
 localcode/
-├── backend/          # Spring Boot backend application
-├── frontend/         # React + Vite frontend application
-├── docker/           # Docker images for code execution environments
-├── docker-compose.yml # Docker Compose configuration
-├── Makefile          # Build and run commands
-└── README.md         # This file
+├── backend/           # Spring Boot API
+├── frontend/          # React + Vite app
+├── runtimes/          # Dockerfiles for code execution (Java, Python, JS)
+├── .devcontainer/     # Dev container setup for local development
+├── docker-compose.yml # Production-ish setup
+└── Makefile           # Handy shortcuts
 ```
 
 ## Prerequisites
 
-- Docker and Docker Compose
-- Java 17+ (for local backend development)
-- Node.js 18+ (for local frontend development)
-- Maven 3.8+ (for backend builds)
+You'll need:
+- Docker or Podman (the Makefile uses Podman by default)
+- Java 17+ (for backend development)
+- Node.js 18+ (for frontend development)
+- Maven 3.8+
 
-## Quick Start
+## Getting started
 
-### Using Docker Compose (Recommended)
+### The quick way (Docker Compose)
 
-1. Build all services:
-   ```bash
-   make build
-   ```
-
-2. Start all services:
-   ```bash
-   make start
-   ```
-
-3. Access the application:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8080/api
-
-4. Stop all services:
-   ```bash
-   make stop
-   ```
-
-### Local Development
-
-#### Backend
+Build everything:
 ```bash
-cd backend
-mvn spring-boot:run
+make build
 ```
 
-#### Frontend
+Start the services:
+```bash
+make start
+```
+
+That's it. Open your browser:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080/api
+
+To stop:
+```bash
+make stop
+```
+
+### Development mode
+
+If you want hot reload and a nicer dev experience:
+
+```bash
+make dev
+```
+
+This uses the dev container setup in `.devcontainer/` and gives you live reloading for both frontend and backend changes.
+
+### Running things manually
+
+Backend:
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Frontend:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## Available Make Commands
+## Sample data
 
-- `make help` - Display available commands
-- `make build` - Build all services
-- `make start` - Start all services with Docker Compose
-- `make stop` - Stop all services
-- `make clean` - Clean build artifacts
-- `make logs` - View logs from all services
-- `make backend-build` - Build backend only
-- `make frontend-build` - Build frontend only
-- `make docker-build` - Build Docker execution images
+When the backend starts with an empty database, it automatically seeds some data:
 
-## Technology Stack
+**Users** (password shown, but stored hashed):
+- `testuser` / `password123`
+- `johndoe` / `password123`  
+- `admin` / `admin123`
 
-- **Frontend**: React 18+, Vite, Tailwind CSS
-- **Backend**: Java Spring Boot 3.x, Spring Security, Spring Data JPA
-- **Database**: PostgreSQL 15+
-- **Code Execution**: Docker containers (Java, Python, JavaScript)
+**Problems**: 13 coding problems across Easy, Medium, and Hard difficulties. Each comes with sample test cases and starter code for Java, Python, and JavaScript.
+
+If you want to reset the database and re-seed, just clear the tables and restart the backend.
+
+## Make commands
+
+```bash
+make help           # Show all commands
+make build          # Build everything
+make start          # Start with Docker Compose
+make stop           # Stop services
+make dev            # Start dev environment with hot reload
+make dev-stop       # Stop dev environment
+make clean          # Clean build artifacts and volumes
+make logs           # Tail logs from all services
+make backend-build  # Build just the backend
+make frontend-build # Build just the frontend
+make runtime-build  # Build the code execution Docker images
+```
+
+## Tech stack
+
+**Frontend**
+- React 18 with Vite
+- Tailwind CSS
+- Monaco Editor (the same editor VS Code uses)
+- React Router
+
+**Backend**
+- Spring Boot 3.x
+- Spring Security with JWT
+- Spring Data JPA
+- PostgreSQL
+- Bucket4j for rate limiting
+
+**Code Execution**
+- Docker containers for Java 17, Python 3.11, and Node.js 18
+- Sandboxed execution with resource limits (CPU, memory, time)
+- No network access from execution containers
 
 ## Configuration
 
-### Environment Variables
+Environment variables you might want to tweak:
 
-Backend environment variables (set in docker-compose.yml or application.properties):
-- `SPRING_DATASOURCE_URL` - PostgreSQL connection URL
-- `SPRING_DATASOURCE_USERNAME` - Database username
-- `SPRING_DATASOURCE_PASSWORD` - Database password
-- `JWT_SECRET` - Secret key for JWT token generation
-- `DOCKER_HOST` - Docker socket path for code execution
+```bash
+# Database
+POSTGRES_DB=localcode
+POSTGRES_USER=localcode
+POSTGRES_PASSWORD=localcode
 
-Frontend environment variables:
-- `VITE_API_BASE_URL` - Backend API base URL
+# Backend
+SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/localcode
+JWT_SECRET=your-secret-key-change-in-production
 
-## Development Workflow
+# Frontend
+VITE_API_BASE_URL=http://localhost:8080/api
 
-1. Make changes to backend or frontend code
-2. Rebuild the specific service: `make backend-build` or `make frontend-build`
-3. Restart services: `make stop && make start`
-4. View logs: `make logs`
+# Docker
+DOCKER_HOST=unix:///var/run/docker.sock
+```
 
-## Next Steps
+There's an `.env.example` file you can copy and modify.
 
-- Set up backend Spring Boot project (Task 2)
-- Set up frontend React project (Task 3)
-- Implement database schema and entities (Task 4)
+## API endpoints
+
+Once running, the backend exposes:
+
+- `POST /api/auth/register` — Create an account
+- `POST /api/auth/login` — Get a JWT token
+- `GET /api/problems` — List all problems
+- `GET /api/problems/{id}` — Get problem details
+- `POST /api/submissions` — Submit a solution
+- `GET /api/submissions` — Your submission history
+- `POST /api/testcases/custom` — Add custom test cases
+
+Most endpoints require a valid JWT in the `Authorization` header.
+
+## Supported languages
+
+- Java 17
+- Python 3.11
+- JavaScript (Node.js 18)
+
+Each language runs in its own Docker image. The images are minimal and locked down — no network, limited CPU/memory, read-only filesystem (except `/tmp` for your code).
+
+## Troubleshooting
+
+**"Cannot connect to database"**
+
+Make sure PostgreSQL is running:
+```bash
+docker-compose ps
+# or
+podman compose ps
+```
+
+**"Docker socket not found"**
+
+The backend needs access to Docker to run code. Check that `DOCKER_HOST` points to the right socket, and that your user has permission to use Docker.
+
+**"Port already in use"**
+
+Something else is using 5173 or 8080. Either stop that process or change the ports in `docker-compose.yml`.
+
+**"Rate limit exceeded"**
+
+The API has rate limiting: 10 submissions per minute, 100 general requests per minute. Wait a bit and try again.
+
+## Contributing
+
+Want to help out? Check out [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on setting up your dev environment, making changes, and submitting PRs.
+
+Some areas that could use help:
+- More coding problems
+- Additional language runtimes (Go, Rust, C++, etc.)
+- UI improvements
+- Test coverage
+
+## More documentation
+
+- [Backend README](backend/README.md) — Detailed backend setup and architecture
+- [Frontend README](frontend/README.md) — Frontend development guide
+- [Runtimes README](runtimes/README.md) — How code execution containers work
 
 ## License
 
