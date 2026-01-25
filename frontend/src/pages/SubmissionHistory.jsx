@@ -130,7 +130,7 @@ function SubmissionHistory() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-gray-600">Loading submissions...</div>
+          <div className="text-lg text-slate-300">Loading submissions...</div>
         </div>
       </div>
     );
@@ -158,11 +158,11 @@ function SubmissionHistory() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-300 font-medium text-gray-700">Filter by Status:</label>
+            <label className="text-sm text-slate-300 font-medium">Filter by Status:</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-slate-300 focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none text-slate-300 focus:ring-2 focus:ring-primary-500"
             >
               <option value="all">All</option>
               <option value="accepted">Accepted</option>
@@ -176,11 +176,11 @@ function SubmissionHistory() {
 
           {/* Sort Controls */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-300 text-gray-700">Sort by:</label>
+            <label className="text-sm font-medium text-slate-300">Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 text-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-slate-800 border border-slate-600 text-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="date">Date</option>
               <option value="runtime">Runtime</option>
@@ -189,7 +189,7 @@ function SubmissionHistory() {
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-2 border border-gray-300 text-slate-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-slate-800 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
               title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
@@ -197,7 +197,7 @@ function SubmissionHistory() {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-sm text-slate-400">
           Showing {filteredSubmissions.length} submission{filteredSubmissions.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -205,7 +205,7 @@ function SubmissionHistory() {
       {/* Submissions Table */}
       {filteredSubmissions.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="text-gray-600 mb-4">
+          <p className="text-slate-300 mb-4">
             {statusFilter === 'all' 
               ? 'No submissions yet' 
               : `No submissions with status: ${formatStatus(statusFilter)}`}
@@ -225,75 +225,75 @@ function SubmissionHistory() {
         <>
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-slate-700">
+                <thead className="bg-slate-700">
                   <tr>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                       onClick={() => toggleSortOrder('problem')}
                     >
                       <div className="flex items-center gap-1">
                         Problem
                         {sortBy === 'problem' && (
-                          <span className="text-primary-600">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                       Language
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                       Status
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                       onClick={() => toggleSortOrder('runtime')}
                     >
                       <div className="flex items-center gap-1">
                         Runtime
                         {sortBy === 'runtime' && (
-                          <span className="text-primary-600">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                       onClick={() => toggleSortOrder('memory')}
                     >
                       <div className="flex items-center gap-1">
                         Memory
                         {sortBy === 'memory' && (
-                          <span className="text-primary-600">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
                     <th 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                       onClick={() => toggleSortOrder('date')}
                     >
                       <div className="flex items-center gap-1">
                         Submitted
                         {sortBy === 'date' && (
-                          <span className="text-primary-600">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          <span className="text-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-slate-800 divide-y divide-slate-700">
                   {currentSubmissions.map((submission) => (
                     <tr
                       key={submission.id}
                       onClick={() => navigate(`/submissions/${submission.id}`)}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-slate-700 cursor-pointer transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900 hover:text-primary-600">
+                        <div className="text-sm font-medium text-slate-300 hover:text-primary transition-colors">
                           {submission.problemTitle}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600 capitalize">{submission.language}</div>
+                        <div className="text-sm text-slate-400 capitalize">{submission.language}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(submission.status)}`}>
@@ -301,21 +301,21 @@ function SubmissionHistory() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-slate-400">
                           {submission.runtimeMs !== null && submission.runtimeMs !== undefined 
                             ? `${submission.runtimeMs}ms` 
                             : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-slate-400">
                           {submission.memoryKb !== null && submission.memoryKb !== undefined 
                             ? `${(submission.memoryKb / 1024).toFixed(2)}MB` 
                             : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">{formatDate(submission.submittedAt)}</div>
+                        <div className="text-sm text-slate-400">{formatDate(submission.submittedAt)}</div>
                       </td>
                     </tr>
                   ))}
@@ -327,21 +327,21 @@ function SubmissionHistory() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-400">
                 Page {currentPage} of {totalPages}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-slate-800 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-slate-800 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>

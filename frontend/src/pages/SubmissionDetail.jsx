@@ -85,7 +85,7 @@ function SubmissionDetail() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-gray-600">Loading submission details...</div>
+          <div className="text-lg text-slate-300">Loading submission details...</div>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ function SubmissionDetail() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
           <div>
             <h2 className="text-2xl text-slate-300 font-semibold mb-2">{submission.problemTitle}</h2>
-            <p className="text-gray-600">Submitted on {formatDate(submission.submittedAt)}</p>
+            <p className="text-slate-400">Submitted on {formatDate(submission.submittedAt)}</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -160,27 +160,27 @@ function SubmissionDetail() {
 
         {/* Status and Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">Status</div>
+          <div className="p-4 bg-slate-700 rounded-lg">
+            <div className="text-sm text-slate-400 mb-1">Status</div>
             <div className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(submission.status)}`}>
               {formatStatus(submission.status)}
             </div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">Language</div>
-            <div className="text-lg font-semibold capitalize">{submission.language}</div>
+          <div className="p-4 bg-slate-700 rounded-lg">
+            <div className="text-sm text-slate-400 mb-1">Language</div>
+            <div className="text-lg font-semibold text-slate-300 capitalize">{submission.language}</div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">Runtime</div>
-            <div className="text-lg font-semibold">
+          <div className="p-4 bg-slate-700 rounded-lg">
+            <div className="text-sm text-slate-400 mb-1">Runtime</div>
+            <div className="text-lg font-semibold text-slate-300">
               {submission.runtimeMs !== null && submission.runtimeMs !== undefined 
                 ? `${submission.runtimeMs}ms` 
                 : 'N/A'}
             </div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">Memory</div>
-            <div className="text-lg font-semibold">
+          <div className="p-4 bg-slate-700 rounded-lg">
+            <div className="text-sm text-slate-400 mb-1">Memory</div>
+            <div className="text-lg font-semibold text-slate-300">
               {submission.memoryKb !== null && submission.memoryKb !== undefined 
                 ? `${(submission.memoryKb / 1024).toFixed(2)}MB` 
                 : 'N/A'}
@@ -208,7 +208,7 @@ function SubmissionDetail() {
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl text-slate-300 font-semibold">Submitted Code</h3>
-          <span className="text-sm text-gray-600 capitalize">{submission.language}</span>
+          <span className="text-sm text-slate-400 capitalize">{submission.language}</span>
         </div>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm font-mono whitespace-pre-wrap break-words">
@@ -220,7 +220,7 @@ function SubmissionDetail() {
       {/* Test Results */}
       {submission.testResults && submission.testResults.length > 0 && (
         <div className="card">
-          <h3 className="text-xl font-semibold mb-4">Test Case Results</h3>
+          <h3 className="text-xl text-slate-300 font-semibold mb-4">Test Case Results</h3>
           <div className="space-y-4">
             {submission.testResults.map((result, index) => (
               <div
@@ -242,7 +242,7 @@ function SubmissionDetail() {
                       {result.passed ? 'PASSED' : 'FAILED'}
                     </span>
                   </div>
-                  <div className="flex gap-4 text-sm text-gray-600">
+                  <div className="flex gap-4 text-sm text-slate-400">
                     {result.runtimeMs !== null && result.runtimeMs !== undefined && (
                       <span>Runtime: {result.runtimeMs}ms</span>
                     )}
@@ -256,9 +256,9 @@ function SubmissionDetail() {
                   {/* Input */}
                   {result.input && (
                     <div>
-                      <div className="text-sm font-medium text-gray-700 mb-1">Input:</div>
-                      <div className="bg-white p-3 rounded border border-gray-200">
-                        <pre className="text-sm font-mono whitespace-pre-wrap break-words">{result.input}</pre>
+                      <div className="text-sm font-medium text-slate-300 mb-1">Input:</div>
+                      <div className="bg-slate-800 p-3 rounded border border-slate-600">
+                        <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap break-words">{result.input}</pre>
                       </div>
                     </div>
                   )}
@@ -266,9 +266,9 @@ function SubmissionDetail() {
                   {/* Expected Output */}
                   {result.expectedOutput && (
                     <div>
-                      <div className="text-sm font-medium text-gray-700 mb-1">Expected Output:</div>
-                      <div className="bg-white p-3 rounded border border-gray-200">
-                        <pre className="text-sm font-mono whitespace-pre-wrap break-words">{result.expectedOutput}</pre>
+                      <div className="text-sm font-medium text-slate-300 mb-1">Expected Output:</div>
+                      <div className="bg-slate-800 p-3 rounded border border-slate-600">
+                        <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap break-words">{result.expectedOutput}</pre>
                       </div>
                     </div>
                   )}
@@ -276,9 +276,9 @@ function SubmissionDetail() {
                   {/* Actual Output */}
                   {result.actualOutput && (
                     <div>
-                      <div className="text-sm font-medium text-gray-700 mb-1">Actual Output:</div>
-                      <div className="bg-white p-3 rounded border border-gray-200">
-                        <pre className="text-sm font-mono whitespace-pre-wrap break-words">{result.actualOutput}</pre>
+                      <div className="text-sm font-medium text-slate-300 mb-1">Actual Output:</div>
+                      <div className="bg-slate-800 p-3 rounded border border-slate-600">
+                        <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap break-words">{result.actualOutput}</pre>
                       </div>
                     </div>
                   )}
@@ -286,9 +286,9 @@ function SubmissionDetail() {
                   {/* Error Message */}
                   {result.errorMessage && (
                     <div>
-                      <div className="text-sm font-medium text-red-700 mb-1">Error:</div>
-                      <div className="bg-white p-3 rounded border border-red-300">
-                        <pre className="text-sm font-mono text-red-600 whitespace-pre-wrap break-words">{result.errorMessage}</pre>
+                      <div className="text-sm font-medium text-red-400 mb-1">Error:</div>
+                      <div className="bg-red-900/20 p-3 rounded border border-red-500/30">
+                        <pre className="text-sm font-mono text-red-300 whitespace-pre-wrap break-words">{result.errorMessage}</pre>
                       </div>
                     </div>
                   )}
