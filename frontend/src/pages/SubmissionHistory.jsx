@@ -139,8 +139,8 @@ function SubmissionHistory() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card bg-red-50 border border-red-200">
-          <p className="text-red-800">{error}</p>
+        <div className="card bg-red-900/20 border border-red-700">
+          <p className="text-red-400">{error}</p>
           <button onClick={fetchSubmissions} className="btn-primary mt-4">
             Retry
           </button>

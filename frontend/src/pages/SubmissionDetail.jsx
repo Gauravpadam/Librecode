@@ -94,8 +94,8 @@ function SubmissionDetail() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card bg-red-50 border border-red-200">
-          <p className="text-red-800">{error}</p>
+        <div className="card bg-red-900/20 border border-red-700">
+          <p className="text-red-400">{error}</p>
           <div className="flex gap-4 mt-4">
             <button onClick={fetchSubmissionDetail} className="btn-primary">
               Retry
@@ -190,13 +190,13 @@ function SubmissionDetail() {
 
         {/* Test Results Summary */}
         {submission.totalTests && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="text-sm font-medium text-blue-900">
+          <div className="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-700">
+            <div className="text-sm font-medium text-slate-300">
               Test Cases: {submission.passedTests || 0} / {submission.totalTests} Passed
             </div>
-            <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+            <div className="mt-2 w-full bg-slate-700/50 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
+                className="bg-green-500 h-2 rounded-full transition-all"
                 style={{ width: `${((submission.passedTests || 0) / submission.totalTests) * 100}%` }}
               />
             </div>
@@ -225,19 +225,15 @@ function SubmissionDetail() {
             {submission.testResults.map((result, index) => (
               <div
                 key={result.id || index}
-                className={`border rounded-lg p-4 ${
-                  result.passed 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-red-50 border-red-200'
-                }`}
+                className="bg-slate-800 border border-slate-700 rounded-lg p-4"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="font-semibold">Test Case {index + 1}</span>
+                    <span className="font-semibold text-slate-300">Test Case {index + 1}</span>
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       result.passed 
-                        ? 'bg-green-200 text-green-800' 
-                        : 'bg-red-200 text-red-800'
+                        ? 'bg-slate-700 text-green-400' 
+                        : 'bg-slate-700 text-red-400'
                     }`}>
                       {result.passed ? 'PASSED' : 'FAILED'}
                     </span>
