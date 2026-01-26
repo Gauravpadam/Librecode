@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Applied this so when switching between signup and login there is no layout shift */
+html { 
+  @apply overflow-y-scroll;
+}
+
 /* Apply fonts globally */
 body {
   font-family: 'Inter', system-ui, sans-serif;

@@ -3,6 +3,40 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../contexts/AuthContext';
 import { API_ENDPOINTS } from '../config/api';
 
+const FAKE_STATS = {
+  totalSolved: 42,
+  totalAttempted: 65,
+  totalProblems: 120,
+};
+
+const FAKE_RECENT_SUBMISSIONS = [
+  {
+    id: 1,
+    problemTitle: 'Two Sum',
+    language: 'javascript',
+    status: 'accepted',
+    runtimeMs: 12,
+    submittedAt: new Date(Date.now() - 5 * 60000).toISOString(),
+  },
+  {
+    id: 2,
+    problemTitle: 'Reverse Linked List',
+    language: 'cpp',
+    status: 'wrong_answer',
+    runtimeMs: 48,
+    submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+  },
+  {
+    id: 3,
+    problemTitle: 'Binary Tree Inorder Traversal',
+    language: 'python',
+    status: 'time_limit_exceeded',
+    runtimeMs: null,
+    submittedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+  },
+];
+
+
 function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
@@ -18,6 +52,15 @@ function Dashboard() {
     try {
       setLoading(true);
       setError(null);
+
+       if (import.meta.env.VITE_USE_FAKE_DASHBOARD === 'true') {
+      // simulate network delay
+      await new Promise((r) => setTimeout(r, 300));
+
+      setStats(FAKE_STATS);
+      setRecentSubmissions(FAKE_RECENT_SUBMISSIONS);
+      return;
+    }
       
       // Fetch user statistics
       const statsResponse = await api.get(API_ENDPOINTS.SUBMISSION_STATS);

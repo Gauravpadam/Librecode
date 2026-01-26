@@ -7,6 +7,34 @@ import ProblemFilters from '../components/problems/ProblemFilters';
 import ProblemsTable from '../components/problems/ProblemsTable';
 import Card from '../components/common/Card';
 
+const MOCK_PROBLEMS = [
+  {
+    id: 1,
+    title: 'Two Sum',
+    difficulty: 'EASY',
+    tags: ['array', 'hashmap'],
+    userStatus: 'solved',
+    acceptanceRate: 45,
+  },
+  {
+    id: 2,
+    title: 'Longest Substring Without Repeating Characters',
+    difficulty: 'MEDIUM',
+    tags: ['string', 'sliding-window'],
+    userStatus: 'attempted',
+    acceptanceRate: 32,
+  },
+  {
+    id: 3,
+    title: 'Median of Two Sorted Arrays',
+    difficulty: 'HARD',
+    tags: ['array', 'binary-search'],
+    userStatus: 'unsolved',
+    acceptanceRate: 18,
+  },
+];
+
+
 function ProblemList() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,14 +69,26 @@ function ProblemList() {
   }, [searchTerm, difficultyFilter, statusFilter, tags, sortBy, currentPage, setSearchParams]);
 
   useEffect(() => {
+    console.log('USE_MOCK:', import.meta.env.VITE_USE_FAKE_PROBLEMS);
+
     fetchProblems();
+    
   }, [difficultyFilter, tags, searchTerm]);
 
   const fetchProblems = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
+      if (import.meta.env.VITE_USE_FAKE_PROBLEMS === 'true') {
+        // simulate network delay
+        await new Promise((r) => setTimeout(r, 300));
+
+        setProblems(MOCK_PROBLEMS);
+        setTotalPages(1);
+        return;
+      }
+
       // Build query parameters for API
       const params = new URLSearchParams();
       if (difficultyFilter !== 'all') params.append('difficulty', difficultyFilter.toUpperCase());

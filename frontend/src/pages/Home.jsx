@@ -1,11 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { getStats } from '../services/submissionService';
-import { CodingQuote, StatsCard, RecentSubmissions } from '../components/home';
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { getStats } from "../services/submissionService";
+import { CodingQuote, StatsCard, RecentSubmissions } from "../components/home";
+import Button from "../components/common/Button";
+import { Link } from "react-router-dom";
+
+const FAKE_HOME_STATS = {
+  solvedProblems: 18,
+  totalSubmissions: 42,
+  accuracy: 73,
+  recentSubmissions: [
+    {
+      id: 1,
+      problemTitle: "Two Sum",
+      status: "accepted",
+      language: "javascript",
+      submittedAt: new Date(Date.now() - 10 * 60000).toISOString(),
+    },
+    {
+      id: 2,
+      problemTitle: "Reverse Linked List",
+      status: "wrong_answer",
+      language: "cpp",
+      submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    },
+    {
+      id: 3,
+      problemTitle: "Binary Tree Inorder Traversal",
+      status: "time_limit_exceeded",
+      language: "python",
+      submittedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    },
+  ],
+};
 
 function Home() {
   const { isAuthenticated } = useAuth();
-  const [stats, setStats] = useState({ solved: 0, submissions: 0, accuracy: '0%' });
+  const [stats, setStats] = useState({
+    solved: 0,
+    submissions: 0,
+    accuracy: "0%",
+  });
   const [recentSubmissions, setRecentSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,19 +52,28 @@ function Home() {
       }
 
       try {
-        // Fetch user stats (now includes recent submissions)
-        const statsData = await getStats();
-        
+        let statsData;
+
+        if (import.meta.env.VITE_USE_FAKE_HOME_STATS === "true") {
+          await new Promise((r) => setTimeout(r, 300)); // simulate API
+          statsData = FAKE_HOME_STATS;
+        } else {
+          // Fetch user stats (now includes recent submissions)
+          statsData = await getStats();
+        }
+
         setStats({
           solved: statsData.solvedProblems || 0,
           submissions: statsData.totalSubmissions || 0,
-          accuracy: statsData.accuracy ? `${Math.round(statsData.accuracy)}%` : '0%',
+          accuracy: statsData.accuracy
+            ? `${Math.round(statsData.accuracy)}%`
+            : "0%",
         });
 
         // Use recent submissions from stats response
         setRecentSubmissions(statsData.recentSubmissions || []);
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+        console.error("Failed to fetch dashboard data:", error);
       } finally {
         setLoading(false);
       }
@@ -48,26 +92,26 @@ function Home() {
         {isAuthenticated() && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <StatsCard 
-                title="Problems Solved" 
-                value={loading ? '—' : stats.solved}
+                title="Problems Solved"
+                value={loading ? "—" : stats.solved}
                 icon="✓"
+              <StatsCard
               />
-              <StatsCard 
-                title="Total Submissions" 
-                value={loading ? '—' : stats.submissions}
+              <StatsCard
+                title="Total Submissions"
+                value={loading ? "—" : stats.submissions}
                 icon="📝"
               />
-              <StatsCard 
-                title="Accuracy" 
-                value={loading ? '—' : stats.accuracy}
+              <StatsCard
+                title="Accuracy"
+                value={loading ? "—" : stats.accuracy}
                 icon="🎯"
               />
             </div>
 
             {/* Recent Submissions */}
-            <RecentSubmissions 
-              submissions={recentSubmissions} 
+            <RecentSubmissions
+              submissions={recentSubmissions}
               loading={loading}
             />
           </>
@@ -83,18 +127,11 @@ function Home() {
               Practice coding problems in your self-hosted environment
             </p>
             <div className="flex justify-center gap-4">
-              <a 
-                href="/login" 
-                className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors"
-              >
-                Sign In
-              </a>
-              <a 
-                href="/register" 
-                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium rounded-md transition-colors"
-              >
-                Get Started
-              </a>
+              <Link to="/register">
+                <Button variant="primary" className="text-sm">
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </div>
         )}
