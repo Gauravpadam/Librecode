@@ -95,6 +95,14 @@ public class Problem {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public void setInputType(String inputType) {
+        this.inputType = inputType;
+    }
+
+    public void setOutputType(String outputType) {
+        this.outputType = outputType;
+    }
     
     public String getTitle() {
         return title;

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.localcode.dto.ProblemDetailDTO;
 
+// Same, this will have a DI as well for different languages
 @Service
 public class ParsingCodeGenerator {
 
@@ -11,13 +12,13 @@ public class ParsingCodeGenerator {
        Public API
        ======================= */
 
-    public String getInputParserCode(ParseType type) {
+    public String getInputParserCode(ParseType type, String variableName) {
         return switch (type) {
-            case INT -> intParser();
-            case STRING -> stringParser();
-            case ARRAY_INT -> intArrayParser();
-            case ARRAY_STRING -> stringArrayParser();
-            case MATRIX_INT -> intMatrixParser();
+            case INT -> intParser(variableName);
+            case STRING -> stringParser(variableName);
+            case ARRAY_INT -> intArrayParser(variableName);
+            case ARRAY_STRING -> stringArrayParser(variableName);
+            case MATRIX_INT -> intMatrixParser(variableName);
             default -> unsupportedParser();
         };
     }
@@ -31,9 +32,9 @@ public class ParsingCodeGenerator {
 
 
 
-    public String getOutputParserCode(ParseType type) {
+    public String getOutputParserCode(ParseType type, String variableName) {
         // For now input & output parsing is symmetric
-        return getInputParserCode(type);
+        return getInputParserCode(type, variableName);
     }
 
     public ParseType parseInputType(ProblemDetailDTO problem) {
@@ -65,33 +66,33 @@ public class ParsingCodeGenerator {
        Generator Code
        ======================= */
 
-    private String intParser() {
-        return "int %s = Integer.parseInt(input.trim());\n";
+    private String intParser(String var) {
+        return "int %s = Integer.parseInt(input.trim());\n".formatted(var);
     }
 
-    private String stringParser() {
-        return "String %s = input.trim()\n";
+    private String stringParser(String var) {
+        return "String %s = input.trim()\n".formatted(var);
     }
 
-    private String intArrayParser() {
+    private String intArrayParser(String var) {
         return """
         List<Integer> %s = Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))
                               .map(String::trim)
                               .map(Integer::parseInt)
                               .collect(Collectors.toList());
-        """;
+        """.formatted(var);
     }
 
-    private String stringArrayParser() {
+    private String stringArrayParser(String var) {
         return """
         List<String> %s = Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))
                                  .map(String::trim)
                                  .map(s -> s.replaceAll(\"^\\\\\"|\\\\\"$\", \"\"))
                                  .collect(Collectors.toList());
-        """;
+        """.formatted(var);
     }
 
-    private String intMatrixParser() {
+    private String intMatrixParser(String var) {
         return """
             String cleaned = input.trim().substring(1, input.length()-1);
                     List<List<Integer>> %s = new ArrayList<>();
@@ -113,7 +114,7 @@ public class ParsingCodeGenerator {
                         for (String val : row.split(\",\")) list.add(Integer.parseInt(val.trim()));
                         return list;
                     }
-        """;
+        """.formatted(var);
     }
 
     private String unsupportedParser() {
