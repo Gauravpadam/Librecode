@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getStats } from "../services/submissionService";
 import { CodingQuote, StatsCard, RecentSubmissions } from "../components/home";
-import Button from "../components/common/Button";
 import { Link } from "react-router-dom";
 
 const FAKE_HOME_STATS = {
@@ -55,10 +54,9 @@ function Home() {
         let statsData;
 
         if (import.meta.env.VITE_USE_FAKE_HOME_STATS === "true") {
-          await new Promise((r) => setTimeout(r, 300)); // simulate API
+          await new Promise((r) => setTimeout(r, 300));
           statsData = FAKE_HOME_STATS;
         } else {
-          // Fetch user stats (now includes recent submissions)
           statsData = await getStats();
         }
 
@@ -70,7 +68,6 @@ function Home() {
             : "0%",
         });
 
-        // Use recent submissions from stats response
         setRecentSubmissions(statsData.recentSubmissions || []);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -83,19 +80,22 @@ function Home() {
   }, [isAuthenticated]);
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen ">
+      <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
         {/* Coding Quote */}
-        <CodingQuote />
+        <section className="card card-body bg-base-200 border border-base-300">
+          <CodingQuote />
+        </section>
 
-        {/* Stats Grid */}
+        {/* Authenticated View */}
         {isAuthenticated() && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            {/* Stats */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatsCard
                 title="Problems Solved"
                 value={loading ? "—" : stats.solved}
                 icon="✓"
-              <StatsCard
               />
               <StatsCard
                 title="Total Submissions"
@@ -107,33 +107,38 @@ function Home() {
                 value={loading ? "—" : stats.accuracy}
                 icon="🎯"
               />
-            </div>
+            </section>
 
             {/* Recent Submissions */}
-            <RecentSubmissions
-              submissions={recentSubmissions}
-              loading={loading}
-            />
+            <section className="">
+              <div className="card-body card bg-base-200 border border-base-300">
+                <RecentSubmissions
+                  submissions={recentSubmissions}
+                  loading={loading}
+                />
+              </div>
+            </section>
           </>
         )}
 
-        {/* Welcome message for non-authenticated users */}
+        {/* Guest View */}
         {!isAuthenticated() && (
-          <div className="mt-8 text-center">
-            <h2 className="text-3xl font-bold text-slate-50 font-sans mb-4">
-              Welcome to LocalCode
-            </h2>
-            <p className="text-xl text-slate-300 font-sans mb-8">
-              Practice coding problems in your self-hosted environment
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link to="/register">
-                <Button variant="primary" className="text-sm">
-                  Get Started
-                </Button>
-              </Link>
+          <section className="card card-body bg-base-200 border border-base-300">
+            <div className="card card-body bg-base-300/50 shadow-xl border border-base-300 items-center text-center gap-6">
+              <div className="flex flex-col items-center gap-4 justify-center-safe">
+                <h2 className="card-title text-2xl">Welcome to LocalCode</h2>
+
+                <p className="">
+                  Practice coding problems in your self-hosted environment
+                </p>
+              </div>
+              <div className="card-actions">
+                <Link to="/register">
+                  <button className="btn btn-primary">Get Started</button>
+                </Link>
+              </div>
             </div>
-          </div>
+          </section>
         )}
       </main>
     </div>
