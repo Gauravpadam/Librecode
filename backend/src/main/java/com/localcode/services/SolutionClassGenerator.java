@@ -4,51 +4,38 @@ import org.springframework.stereotype.Service;
 
 import com.localcode.dto.ExecutionRequest;
 import com.localcode.dto.ProblemDetailDTO;
+import com.localcode.services.Emitters.CodeEmitter;
+import com.localcode.services.Emitters.EmitterFactory;
 
-// Ideally I need to perform a DI here which I'm not able to see atm.
-// Will do as it comes.
-// Also the buider pattern is broken.
+// DI figured out
 @Service
 public class SolutionClassGenerator {
 
-    private final ParsingCodeGenerator parsingCodeGenerator;
-    StringBuilder sb = new StringBuilder();
+    private final EmitterFactory emitterFactory;
 
-    public SolutionClassGenerator(ParsingCodeGenerator parsingCodeGenerator) {
-        this.parsingCodeGenerator = parsingCodeGenerator;
+    public SolutionClassGenerator(
+        EmitterFactory emitterFactory
+    ) {
+        this.emitterFactory = emitterFactory;
     }
 
-    public String build(){
-        return sb.toString();
+    public String generate(ExecutionRequest request, ProblemDetailDTO problem){
+
+        StringBuilder innerCode = new StringBuilder();
+
+        String problemFunction = problem.getStarterCode().get(request.getLanguage());
+        CodeEmitter emitter = emitterFactory.getEmitter(request.getLanguage());
+
+        innerCode.append(emitter.generateImports());
+        innerCode.append(problemFunction); // Main needs to know what to call, probably a little tweak in wrapperclassgeneration
+        innerCode.append(emitter.generateInputParsing(null)); // Need to map and send types
+        innerCode.append(emitter.generateOutputParsing(null));
+
+
+        String finalCode = emitter.generateWrapperClass(innerCode.toString());
+
+        return finalCode;
+
+
     }
-
-    public void addStarterCode(ProblemDetailDTO problem, ExecutionRequest executionRequest){
-        String starterCode = problem.getStarterCode().get(executionRequest.getLanguage());
-        sb.append(starterCode);
-    }
-
-    public void addImports(ProblemDetailDTO problem){
-        String imports = parsingCodeGenerator.getImports(parsingCodeGenerator.parseInputType(problem));
-        imports += parsingCodeGenerator.getImports(parsingCodeGenerator.parseInputType(problem));
-
-        sb.append(imports);
-    }
-
-    public void addScanner(){
-        sb.append("Scanner sc = new Scanner(System.in);\n String input = sc.nextLine();");
-    }
-
-
-    public void addInputParsing(ProblemDetailDTO problem){
-        String parser = parsingCodeGenerator.getInputParserCode(parsingCodeGenerator.parseInputType(problem), "parsed");
-        sb.append(parser);
-    }
-
-    public void addOutputParsing(ProblemDetailDTO problem){
-        String parser = parsingCodeGenerator.getOutputParserCode(parsingCodeGenerator.parseOutputType(problem), "result");
-        sb.append(parser);
-    }
-
-    
-    
 }
