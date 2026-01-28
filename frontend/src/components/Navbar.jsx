@@ -1,19 +1,21 @@
+// ### Navbar (DaisyUI)
+// - Converted from custom Tailwind layout to DaisyUI `navbar`
+// - Removed hardcoded colors in favor of theme tokens
+// - Authentication UI delegated to `ProfileDropdown`
+
+
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Button from "./common/Button";
 import ProfileDropdown from "./ProfileDropdown";
 
-/**
- * Navbar component fully converted to daisyUI
- */
+
 function Navbar() {
   const { isAuthenticated } = useAuth();
 
   
 
   return (
-    /* Using 'navbar' and 'bg-base-100' instead of hardcoded 'bg-primary' 
-       so your content is actually readable! */
     <nav className="navbar bg-base-100/50 border-b-2 border-base-300 p-4 sm:p-6">
       {/* Navbar Start: Logo */}
       <div className="navbar-start">
