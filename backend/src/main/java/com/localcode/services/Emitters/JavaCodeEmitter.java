@@ -1,11 +1,33 @@
 package com.localcode.services;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
-
+import java.util.regex.*;
 import com.localcode.persistence.entity.InputType;
 
 @Component("JavaCodeEmitter")
 public class JavaCodeEmitter implements CodeEmitter{
+
+    class Param {
+        final String type;
+        final String name;
+    
+        Param(String type, String name) {
+            this.type = type;
+            this.name = name;
+        }
+    }
+    
+    class MethodSignature {
+        final String methodName;
+        final List<Param> params;
+    
+        MethodSignature(String methodName, List<Param> params) {
+            this.methodName = methodName;
+            this.params = params;
+        }
+    }    
    
     @Override
     public String generateImports(){ return "import java.util.*;\nimport java.util.stream.*;\n";} 
@@ -99,36 +121,61 @@ public class JavaCodeEmitter implements CodeEmitter{
         }
     }
 
-   private MethodSignature parseStarterCode(String starterCode) {
+    private MethodSignature parseStarterCode(String starterCode) {
+
+        Pattern pattern = Pattern.compile(
+            "(?:public|protected|private|static|final|\\s)*" +
+            "[\\w<>\\[\\]]+\\s+" +        // return type
+            "([a-zA-Z_]\\w*)\\s*" +       // method name
+            "\\(([^)]*)\\)"               // params
+        );
     
-    Pattern pattern = Pattern.compile(
-        "(?:public|protected|private|static|\\s)+\\b([a-zA-Z_]\\w*)\\s*\\(([^)]*)\\)"
-    );
-
-    Matcher matcher = pattern.matcher(starterCode);
-
-    if (!matcher.find()) {
-        throw new IllegalArgumentException("No method signature found");
+        Matcher matcher = pattern.matcher(starterCode);
+    
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("No method signature found");
+        }
+    
+        String methodName = matcher.group(1);
+        String paramsStr = matcher.group(2).trim();
+    
+        List<Param> params = new ArrayList<>();
+    
+        if (!paramsStr.isEmpty()) {
+            int depth = 0;
+            int start = 0;
+    
+            for (int i = 0; i < paramsStr.length(); i++) {
+                char c = paramsStr.charAt(i);
+    
+                if (c == '<') depth++;
+                else if (c == '>') depth--;
+                else if (c == ',' && depth == 0) {
+                    extractParam(paramsStr.substring(start, i), params);
+                    start = i + 1;
+                }
+            }
+    
+            // last param
+            extractParam(paramsStr.substring(start), params);
+        }
+    
+        return new MethodSignature(methodName, params);
     }
 
-    String method = matcher.group(1);
-    String params = matcher.group(2).trim();
+    private void extractParam(String raw, List<Param> params) {
+        String param = raw.trim();
+        int lastSpace = param.lastIndexOf(' ');
 
-    int paramCount = 0;
-    int depth = 0;
+        if (lastSpace == -1) {
+            throw new IllegalArgumentException("Invalid parameter: " + param);
+        }
 
-    for (int i = 0; i < params.length(); i++) {
-        char c = params.charAt(i);
-        if (c == '<') depth++;
-        else if (c == '>') depth--;
-        else if (c == ',' && depth == 0) paramCount++;
+        String type = param.substring(0, lastSpace).trim();
+        String name = param.substring(lastSpace + 1).trim();
+
+        params.add(new Param(type, name));
     }
 
-    if (!params.isEmpty()) {
-        paramCount++;
-    }
-
-    return new MethodSignature(method, paramCount);
-}
-
+    
 }
