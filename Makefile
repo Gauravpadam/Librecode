@@ -1,10 +1,14 @@
-.PHONY: help build start stop clean logs backend-build frontend-build docker-build dev dev-stop
+.PHONY: help build start stop clean logs backend-build frontend-build docker-build dev dev-stop env
+
+# Detect container engine: podman, nerdctl, or docker (default)
+CONTAINER_ENGINE ?= $(shell (command -v podman >/dev/null 2>&1 && echo podman) || (command -v nerdctl >/dev/null 2>&1 && echo nerdctl) || (command -v docker >/dev/null 2>&1 && echo docker) || echo docker)
+
 
 help:
 	@echo "LocalCode Development Commands"
 	@echo "=============================="
 	@echo "make build          - Build all services (backend, frontend, docker images)"
-	@echo "make start          - Start all services with Docker Compose"
+	@echo "make start          - Start all services with $(COMPOSE) (set CONTAINER_ENGINE to override)"
 	@echo "make stop           - Stop all services"
 	@echo "make dev            - Start development environment with hot reload"
 	@echo "make dev-stop       - Stop development environment"
@@ -12,7 +16,11 @@ help:
 	@echo "make logs           - View logs from all services"
 	@echo "make backend-build  - Build backend only"
 	@echo "make frontend-build - Build frontend only"
-	@echo "make docker-build   - Build Docker images for execution environments"
+	@echo "make docker-build   - Build container runtime images (alias for runtime-build)"
+	@echo "make env            - Print detected container engine and compose command"
+
+
+
 
 build: backend-build frontend-build docker-build
 
@@ -25,38 +33,38 @@ frontend-build:
 	cd frontend && npm install && npm run build
 
 runtime-build:
-	@echo "Building Docker execution images..."
-	podman build -t localcode-java:latest -f runtimes/Dockerfile.java .
-	podman build -t localcode-python:latest -f runtimes/Dockerfile.python .
-	podman build -t localcode-javascript:latest -f runtimes/Dockerfile.javascript .
+	@echo "Building container runtime images using $(CONTAINER_ENGINE)..."
+	$(CONTAINER_ENGINE) build -t localcode-java:latest -f runtimes/Dockerfile.java .
+	$(CONTAINER_ENGINE) build -t localcode-python:latest -f runtimes/Dockerfile.python .
+	$(CONTAINER_ENGINE) build -t localcode-javascript:latest -f runtimes/Dockerfile.javascript .
+
+docker-build: runtime-build
 
 start:
-	@echo "Starting LocalCode services..."
-	podman compose -f ./docker-compose.yml up
+	@echo "Starting LocalCode services using $(CONTAINER_ENGINE)..."
+	$(CONTAINER_ENGINE) compose -f ./docker-compose.yml up -d
 
 stop:
 	@echo "Stopping LocalCode services..."
-	podman compose -f ./docker-compose.yml down
-
+	$(CONTAINER_ENGINE) compose -f ./docker-compose.yml down
 clean:
 	@echo "Cleaning build artifacts..."
 	cd backend && mvn clean
 	cd frontend && rm -rf dist node_modules
-	podman compose down -v
+	$(CONTAINER_ENGINE) compose -f ./docker-compose.yml down -v
 
 logs:
-	docker-compose logs -f
-
+	@echo "Streaming logs from services using $(CONTAINER_ENGINE)..."
+	$(CONTAINER_ENGINE) compose -f ./docker-compose.yml logs -f
 dev-build: runtime-build
 
 dev:
-	@echo "Starting development environment..."
-	podman compose -f .devcontainer/docker-compose.dev.yml up --build
+	@echo "Starting development environment using $(CONTAINER_ENGINE)..."
+	$(CONTAINER_ENGINE) compose -f .devcontainer/docker-compose.dev.yml up --build -d
 
 dev-stop:
 	@echo "Stopping development environment..."
-	podman compose -f .devcontainer/docker-compose.dev.yml down
-
+	$(CONTAINER_ENGINE) compose -f .devcontainer/docker-compose.dev.yml down
 dev-clean-stop:
 	@echo "Stopping development environment..."
-	podman compose -f .devcontainer/docker-compose.dev.yml down -v
+	$(CONTAINER_ENGINE) compose -f .devcontainer/docker-compose.dev.yml down -v
