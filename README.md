@@ -33,7 +33,7 @@ localcode/
 ## Prerequisites
 
 You'll need:
-- Docker or Podman (the Makefile uses Podman by default)
+- Docker or Podman 
 - Java 17+ (for backend development)
 - Node.js 18+ (for frontend development)
 - Maven 3.8+
