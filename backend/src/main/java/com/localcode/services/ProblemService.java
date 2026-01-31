@@ -184,6 +184,8 @@ public class ProblemService {
             problem.getTitle(),
             problem.getDescription(),
             problem.getConstraints(),
+            problem.getInputType(),
+            problem.getOutputType(),
             problem.getDifficulty().name(),
             problem.getTags(),
             problem.getTimeLimitMs(),
