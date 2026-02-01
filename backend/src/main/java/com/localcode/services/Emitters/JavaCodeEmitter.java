@@ -84,42 +84,46 @@ public class JavaCodeEmitter implements CodeEmitter{
 
     @Override
     public String generateTailCode(String inputParsing, String outputParsing, String methodToCall, int paramCount) {
+
+        MethodSignature signature = parseStarterCode(methodToCall);
         return """
             Public Class Solution {
                 public static void main(String[] args) {
                     Scanner scanner = new Scanner(System.in);
 
-                    ArrayList<String> input = new ArrayList()<>;
-
-                    for (int i = 0, i < %i, i++){
-                        input.append(Scanner.nextLine());
+                    for (Param param : signature.params) {
+                        // Generate input parsing code based on param type
+                        switch (param.type) {
+                            case "int":
+                                %s
+                                break;
+                            case "String":
+                                %s
+                                break;
+                            case "List<Integer>":
+                                %s
+                                break;
+                            case "List<String>":
+                                %s
+                                break;
+                            case "List<List<Integer>>":
+                                %s
+                                break;
+                            default:
+                                %s
+                        }
                     }
 
-                    Result.%s()
+
+
+
+                    Result.%s();
                     scanner.close(); 
                 }
             }
-            """.formatted(innerCode);
+            """.formatted(ignature.params.size(), signature.methodName);
     }
 
-    @Override
-    public String generateUserFunctionCall(String starterFunction){
-        Pattern pattern = Pattern.compile(
-            "\\b(?:public|protected|private|static|final|synchronized|abstract|\\s)+"
-          + "[a-zA-Z_$][a-zA-Z0-9_$<>\\[\\]]*\\s+"
-          + "([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*\\("
-        );
-
-        Matcher matcher = pattern.matcher(starterFunction);
-
-        if (matcher.find()){
-            String methodName = matcher.group(1);
-            // I'll need the inputType here as well, for storing the parsed var before sending it
-            return "%s(parsed);\n".formatted(methodName); // todo: Have scanners to take in and parse all agruments, and send all arguments in
-        } else {
-            throw new IllegalArgumentException("No valid method signature found in the provided code.");
-        }
-    }
 
     private MethodSignature parseStarterCode(String starterCode) {
 
