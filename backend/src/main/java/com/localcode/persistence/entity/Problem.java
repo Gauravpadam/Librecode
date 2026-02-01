@@ -25,12 +25,6 @@ public class Problem {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "input_type", nullable = false, length = 20)
-    private String inputType;
-
-    @Column(name = "output_type", nullable = false, length = 20)
-    private String outputType;
-    
     @Column(columnDefinition = "TEXT")
     private String constraints;
     
@@ -77,11 +71,9 @@ public class Problem {
     public Problem() {
     }
     
-    public Problem(String title, String description, Difficulty difficulty, String inputType, String outputType, Integer timeLimitMs, Integer memoryLimitMb) {
+    public Problem(String title, String description, Difficulty difficulty, Integer timeLimitMs, Integer memoryLimitMb) {
         this.title = title;
         this.description = description;
-        this.inputType = inputType;
-        this.outputType = outputType;
         this.difficulty = difficulty;
         this.timeLimitMs = timeLimitMs;
         this.memoryLimitMb = memoryLimitMb;
@@ -96,9 +88,6 @@ public class Problem {
         this.id = id;
     }
 
-    public void setInputType(String inputType) {
-        this.inputType = inputType;
-    }
 
     public void setOutputType(String outputType) {
         this.outputType = outputType;
@@ -112,14 +101,7 @@ public class Problem {
         this.title = title;
     }
 
-    public String getInputType(){
-        return inputType;
-    }
 
-    public String getOutputType(){
-        return outputType;
-    }
-    
     public String getDescription() {
         return description;
     }

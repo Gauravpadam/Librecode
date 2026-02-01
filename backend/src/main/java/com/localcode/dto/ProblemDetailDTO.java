@@ -10,8 +10,6 @@ public class ProblemDetailDTO {
     private Long id;
     private String title;
     private String description;
-    private String inputType;
-    private String outputType;
     private String constraints;
     private String difficulty;
     private String[] tags;
@@ -26,15 +24,13 @@ public class ProblemDetailDTO {
     public ProblemDetailDTO() {
     }
     
-    public ProblemDetailDTO(Long id, String title, String description, String constraints, String inputType, String outputType,
+    public ProblemDetailDTO(Long id, String title, String description, String constraints, 
                            String difficulty, String[] tags, Integer timeLimitMs, Integer memoryLimitMb,
                            Map<String, String> starterCode, String userStatus, 
                            Integer attemptCount, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.inputType = inputType;
-        this.outputType = outputType;
         this.constraints = constraints;
         this.difficulty = difficulty;
         this.tags = tags;
@@ -146,13 +142,6 @@ public class ProblemDetailDTO {
         this.tags = tags;
     }
 
-    public String getInputType(){
-        return inputType;
-    }
-
-    public void setInputType(){
-        this.inputType = inputType;
-    }
 
 
 }
