@@ -21,13 +21,13 @@ public class CodeHarness {
         this.emitterFactory = emitterFactory;
     }
 
-    public String generate(ExecutionRequest request, ProblemDetailDTO problem){
+    public String generate(ExecutionRequest request){
 
         CodeEmitter emitter = emitterFactory.getEmitter(request.getLanguage());
         StringBuilder harness = new StringBuilder();
 
         harness.append(emitter.generateImports());
-        harness.append(emitter.generateTailCode(problem.getStarterCode().get(request.getLanguage())));
+        harness.append(emitter.generateTailCode(request.getMethodToCall()));
 
         return harness.toString();
     }

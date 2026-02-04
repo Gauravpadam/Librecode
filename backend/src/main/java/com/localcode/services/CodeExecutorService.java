@@ -21,6 +21,7 @@ import com.localcode.exception.ExecutionException;
 import com.localcode.exception.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -45,10 +46,13 @@ public class CodeExecutorService {
     private final DockerClient dockerClient;
     private final ResourceLimits resourceLimits;
     private final DockerSecurityConfig securityConfig;
+
+    private final CodeHarness codeHarness;
     
-    public CodeExecutorService(ResourceLimits resourceLimits, DockerSecurityConfig securityConfig) {
+    public CodeExecutorService(ResourceLimits resourceLimits, DockerSecurityConfig securityConfig, CodeHarness codeHarness) {
         this.resourceLimits = resourceLimits;
         this.securityConfig = securityConfig;
+        this.codeHarness = codeHarness;
         
         try {
             DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -194,13 +198,18 @@ public class CodeExecutorService {
     private void writeCodeToContainer(String containerId, ExecutionRequest request) throws IOException {
         String language = request.getLanguage().toLowerCase();
         String fileName;
-        String code = request.getCode();
+        StringBuilder code = new StringBuilder();
+
+        String harness = codeHarness.generate(request);
+        code.append(harness); // Harness
+        code.append(request.getCode()); // Code
+
         
-        // Determine file name based on language
+        // Determine file name based on language, (Reeks)
         switch (language) {
             case "java":
                 // Extract class name from code
-                fileName = extractJavaClassName(code);
+                fileName = extractJavaClassName(code.toString());
                 break;
             case "python":
                 fileName = "solution.py";
@@ -217,7 +226,7 @@ public class CodeExecutorService {
         File codeFile = new File(tempDir.toFile(), fileName);
         
         try (FileWriter writer = new FileWriter(codeFile)) {
-            writer.write(code);
+            writer.write(code.toString());
         }
         
         // Copy code file to container

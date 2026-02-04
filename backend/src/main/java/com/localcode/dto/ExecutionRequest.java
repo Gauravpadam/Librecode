@@ -6,6 +6,7 @@ package com.localcode.dto;
 public class ExecutionRequest {
     private String code;
     private String language;
+    private String methodToCall;
     private String input;
     private Integer timeLimitMs;
     private Integer memoryLimitMb;
@@ -14,9 +15,10 @@ public class ExecutionRequest {
     public ExecutionRequest() {
     }
     
-    public ExecutionRequest(String code, String language, String input, Integer timeLimitMs, Integer memoryLimitMb) {
+    public ExecutionRequest(String code, String language, String methodToCall, String input, Integer timeLimitMs, Integer memoryLimitMb) {
         this.code = code;
         this.language = language;
+        this.methodToCall = methodToCall;
         this.input = input;
         this.timeLimitMs = timeLimitMs;
         this.memoryLimitMb = memoryLimitMb;
@@ -61,5 +63,13 @@ public class ExecutionRequest {
     
     public void setMemoryLimitMb(Integer memoryLimitMb) {
         this.memoryLimitMb = memoryLimitMb;
+    }
+
+    public String getMethodToCall(){
+        return this.methodToCall;
+    }
+
+    public void setMethodToCall(String methodToCall){
+        this.methodToCall = methodToCall;
     }
 }

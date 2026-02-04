@@ -78,12 +78,30 @@ public class EvaluationService {
         int maxRuntimeMs = 0;
         long maxMemoryKb = 0;
         SubmissionStatus finalStatus = SubmissionStatus.ACCEPTED;
+
+        StringBuilder methodToCall = new StringBuilder();
+
+        // Code smells, I'd need a strategy here to prepare an execution request. For now it's ok.
+        switch (submission.getLanguage()) {
+            case "java":
+                methodToCall.append(problem.getStarterCodeJava());
+                break;
+            case "python":
+                methodToCall.append(problem.getStarterCodePython());
+                break;
+            case "javascript":
+                methodToCall.append(problem.getStarterCodeJavascript());
+                break;
+            default:
+                break;
+        }
         
         for (TestCaseData testCase : allTestCases) {
             // Execute code
             ExecutionRequest execRequest = new ExecutionRequest(
                 submission.getCode(),
                 submission.getLanguage(),
+                methodToCall.toString(),
                 testCase.input,
                 problem.getTimeLimitMs(),
                 problem.getMemoryLimitMb()
