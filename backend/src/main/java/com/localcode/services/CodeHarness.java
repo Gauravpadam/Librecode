@@ -23,23 +23,12 @@ public class CodeHarness {
 
     public String generate(ExecutionRequest request, ProblemDetailDTO problem){
 
+        CodeEmitter emitter = emitterFactory.getEmitter(request.getLanguage());
         StringBuilder harness = new StringBuilder();
 
-        String problemFunction = problem.getStarterCode().get(request.getLanguage());
-        String problemInputType = problem.getInputType();
-        CodeEmitter emitter = emitterFactory.getEmitter(request.getLanguage());
+        harness.append(emitter.generateImports());
+        harness.append(emitter.generateTailCode(problem.getStarterCode().get(request.getLanguage())));
 
-
-        String inputParser = emitter.generateInputParsing(null);
-        String outputParser = emitter.generateOutputParsing(null);
-        String head =emitter.generateImports();
-        String tail = emitter.generateTail()
-
-        harness.append(emitter.generateOutputParsing(null));
-
-
-        String finalCode = emitter.g(innerCode.toString());
-
-        return finalCode;
+        return harness.toString();
     }
 }
