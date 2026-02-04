@@ -16,6 +16,7 @@ public class EmitterFactory {
 
     public CodeEmitter getEmitter(String language) {
         return switch (language.toLowerCase()) {
+            case "java" -> javaCodeEmitter;
             case "python" -> pythonCodeEmitter;
             case "javascript", "js" -> jsCodeEmitter;
             default -> throw new IllegalArgumentException("Unsupported language: " + language);

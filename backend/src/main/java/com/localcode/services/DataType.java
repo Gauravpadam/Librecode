@@ -1,9 +1,8 @@
 package com.localcode.services;
 
-public class DataType{
 
-    public enum JavaDataType{
-         // primitives
+public enum DataType{
+     // primitives
     INT,
     LONG,
     DOUBLE,
@@ -33,5 +32,4 @@ public class DataType{
 
     // fallback
     UNKNOWN
-    }
 }

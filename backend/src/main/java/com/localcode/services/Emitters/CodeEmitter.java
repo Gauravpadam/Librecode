@@ -1,8 +1,9 @@
 package com.localcode.services.Emitters;
-
+import com.localcode.services.DataType;
 
 public interface CodeEmitter {
-    String generateTailCode(String methodToCall);
     String generateImports();
-    String generateInputParsing(Object dataType);
+    String generateTailCode(String methodToCall);
+    String generateInputParsing(DataType dataType);
+
 }

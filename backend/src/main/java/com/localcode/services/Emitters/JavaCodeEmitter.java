@@ -1,82 +1,58 @@
-package com.localcode.services;
+package com.localcode.services.Emitters;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.boot.autoconfigure.jackson.JacksonProperties.Datatype;
+import com.localcode.services.MethodSignature;
 import org.springframework.stereotype.Component;
 import java.util.regex.*;
+
+import com.localcode.services.Param;
 import com.localcode.services.DataType;
-import com.localcode.services.DataType.JavaDataType;
 
 @Component("JavaCodeEmitter")
 public class JavaCodeEmitter implements CodeEmitter{
 
-    private final JavaDataType javaDataType;
 
-    class Param {
-        final String type;
-        final String name;
-    
-        Param(String type, String name) {
-            this.type = type;
-            this.name = name;
-        }
-    }
-    
-     class MethodSignature {
-        final String returnType;
-        final String methodName;
-        final List<Param> params;
-    
-        MethodSignature(String returnType, String methodName, List<Param> params) {
-            this.returnType = returnType;
-            this.methodName = methodName;
-            this.params = params;
-        }
-    }
-
-    private DataType.JavaDataType javaDataTypeMap(String paramType){
+    private DataType dataTypeMap(String paramType){
         return switch (paramType) {
         // primitives
-        case "int" -> DataType.JavaDataType.INT;
-        case "long" -> DataType.JavaDataType.LONG;
-        case "double" -> DataType.JavaDataType.DOUBLE;
-        case "float" -> DataType.JavaDataType.FLOAT;
-        case "boolean" -> DataType.JavaDataType.BOOLEAN;
-        case "char" -> DataType.JavaDataType.CHAR;
+        case "int" -> DataType.INT;
+        case "long" -> DataType.LONG;
+        case "double" -> DataType.DOUBLE;
+        case "float" -> DataType.FLOAT;
+        case "boolean" -> DataType.BOOLEAN;
+        case "char" -> DataType.CHAR;
 
         // boxed / objects
-        case "Integer" -> DataType.JavaDataType.INT;
-        case "Long" -> DataType.JavaDataType.LONG;
-        case "Double" -> DataType.JavaDataType.DOUBLE;
-        case "Float" -> DataType.JavaDataType.FLOAT;
-        case "Boolean" -> DataType.JavaDataType.BOOLEAN;
-        case "Character" -> DataType.JavaDataType.CHAR;
-        case "String" -> DataType.JavaDataType.STRING;
+        case "Integer" -> DataType.INT;
+        case "Long" -> DataType.LONG;
+        case "Double" -> DataType.DOUBLE;
+        case "Float" -> DataType.FLOAT;
+        case "Boolean" -> DataType.BOOLEAN;
+        case "Character" -> DataType.CHAR;
+        case "String" -> DataType.STRING;
 
         // primitive arrays
-        case "int[]" -> DataType.JavaDataType.ARRAY_INT;
-        case "long[]" -> DataType.JavaDataType.ARRAY_LONG;
-        case "double[]" -> DataType.JavaDataType.ARRAY_DOUBLE;
-        case "String[]" -> DataType.JavaDataType.ARRAY_STRING;
+        case "int[]" -> DataType.ARRAY_INT;
+        case "long[]" -> DataType.ARRAY_LONG;
+        case "double[]" -> DataType.ARRAY_DOUBLE;
+        case "String[]" -> DataType.ARRAY_STRING;
 
         // lists (common variants)
-        case "List<Integer>" -> DataType.JavaDataType.LIST_INT;
-        case "ArrayList<Integer>" -> DataType.JavaDataType.LIST_INT;
-        case "LinkedList<Integer>" -> DataType.JavaDataType.LIST_INT;
-        case "List<Long>" -> DataType.JavaDataType.LIST_LONG;
-        case "ArrayList<Long>" -> DataType.JavaDataType.LIST_LONG;
-        case "List<Double>" -> DataType.JavaDataType.LIST_DOUBLE;
-        case "ArrayList<Double>" -> DataType.JavaDataType.LIST_DOUBLE;
-        case "List<String>" -> DataType.JavaDataType.LIST_STRING;
-        case "ArrayList<String>" -> DataType.JavaDataType.LIST_STRING;
+        case "List<Integer>" -> DataType.LIST_INT;
+        case "ArrayList<Integer>" -> DataType.LIST_INT;
+        case "LinkedList<Integer>" -> DataType.LIST_INT;
+        case "List<Long>" -> DataType.LIST_LONG;
+        case "ArrayList<Long>" -> DataType.LIST_LONG;
+        case "List<Double>" -> DataType.LIST_DOUBLE;
+        case "ArrayList<Double>" -> DataType.LIST_DOUBLE;
+        case "List<String>" -> DataType.LIST_STRING;
+        case "ArrayList<String>" -> DataType.LIST_STRING;
 
         // matrices
-        case "int[][]" -> DataType.JavaDataType.MATRIX_INT;
-        case "long[][]" -> DataType.JavaDataType.MATRIX_LONG;
-        case "String[][]" -> DataType.JavaDataType.MATRIX_STRING;
+        case "int[][]" -> DataType.MATRIX_INT;
+        case "long[][]" -> DataType.MATRIX_LONG;
+        case "String[][]" -> DataType.MATRIX_STRING;
 
         default -> throw new IllegalArgumentException("Unknown Java type: " + paramType);
     };
@@ -86,7 +62,7 @@ public class JavaCodeEmitter implements CodeEmitter{
     public String generateImports(){ return "import java.util.*;\nimport java.util.stream.*;\n";} 
 
     @Override
-    public String generateInputParsing(JavaDataType javaDataType){
+    public String generateInputParsing(DataType javaDataType){
         return switch (javaDataType) {
             case INT -> "Integer.parseInt(input.trim())";
             case LONG -> "Long.parseLong(input.trim())";
@@ -143,39 +119,12 @@ public class JavaCodeEmitter implements CodeEmitter{
         };
     }
 
-    @Override
-    public String generateTailCode(String methodToCall) {
-
-        MethodSignature signature = parseStarterCode(methodToCall);
-
-        StringBuilder out = new StringBuilder();
-        out.append("public class Solution {\n");
-        out.append("    public static void main(String[] args) {\n");
-        out.append("        Scanner scanner = new Scanner(System.in);\n\n");
-
-        // Read and parse each parameter
-        for (int i = 0; i < signature.params.size(); i++) {
-            out.append(generateParamParsing(signature.params.get(i), i));
-        }
-
-        out.append("\n");
-
-        // Call method and handle output
-        out.append(generateMethodCall(signature));
-
-        out.append("        scanner.close();\n");
-        out.append("    }\n");
-        out.append("}\n");
-
-        return out.toString();
-    }
-
 
     private String generateParamParsing(Param param, int index) {
             StringBuilder code = new StringBuilder();
             code.append(String.format("        String input%d = scanner.nextLine();\n", index));
             
-            DataType.JavaDataType dt = javaDataTypeMap(param.type);
+            DataType dt = dataTypeMap(param.type);
             String parseExpr = generateInputParsing(dt).replace("input", "input" + index);
             
             code.append(String.format("        %s %s = %s;\n", param.type, param.name, parseExpr));
