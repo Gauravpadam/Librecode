@@ -7,13 +7,15 @@ import org.springframework.stereotype.Component;
 import java.util.regex.*;
 
 import com.localcode.services.Param;
+
+
 import com.localcode.services.DataType;
 
 @Component("JavaCodeEmitter")
 public class JavaCodeEmitter implements CodeEmitter{
 
-
-    private DataType dataTypeMap(String paramType){
+    @Override
+    public DataType dataTypeMap(String paramType){
         return switch (paramType) {
         // primitives
         case "int" -> DataType.INT;

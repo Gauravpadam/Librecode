@@ -5,5 +5,6 @@ public interface CodeEmitter {
     String generateImports();
     String generateTailCode(String methodToCall);
     String generateInputParsing(DataType dataType);
+    DataType dataTypeMap(String paramType);
 
 }
