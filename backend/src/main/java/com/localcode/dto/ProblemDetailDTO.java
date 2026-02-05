@@ -63,9 +63,7 @@ public class ProblemDetailDTO {
         return description;
     }
     
-    public String getOutputType() {
-        return outputType;
-    }
+    
     public void setDescription(String description) {
         this.description = description;
     }

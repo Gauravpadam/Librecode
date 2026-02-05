@@ -59,6 +59,9 @@ public class JavaCodeEmitter implements CodeEmitter{
         default -> throw new IllegalArgumentException("Unknown Java type: " + paramType);
     };
 }
+
+
+
    
     @Override
     public String generateImports(){ return "import java.util.*;\nimport java.util.stream.*;\n";} 
@@ -74,19 +77,37 @@ public class JavaCodeEmitter implements CodeEmitter{
             case CHAR -> "input.trim().charAt(0)";
             case STRING -> "input.trim()";
             
-            case ARRAY_INT, LIST_INT -> 
+            // primitive arrays -> return primitive array types
+            case ARRAY_INT -> 
+                "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
+                ".map(String::trim).filter(s->!s.isEmpty()).mapToInt(Integer::parseInt).toArray()";
+            
+            case ARRAY_LONG -> 
+                "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
+                ".map(String::trim).filter(s->!s.isEmpty()).mapToLong(Long::parseLong).toArray()";
+            
+            case ARRAY_DOUBLE -> 
+                "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
+                ".map(String::trim).filter(s->!s.isEmpty()).mapToDouble(Double::parseDouble).toArray()";
+            
+            case ARRAY_STRING -> 
+                "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
+                ".map(String::trim).map(s->s.replaceAll(\"^\\\"|\\\"$\", \"\")).toArray(String[]::new)";
+            
+            // list variants -> keep returning collections
+            case LIST_INT -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
                 ".map(String::trim).filter(s->!s.isEmpty()).map(Integer::parseInt).collect(Collectors.toList())";
             
-            case ARRAY_LONG, LIST_LONG -> 
+            case LIST_LONG -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
                 ".map(String::trim).filter(s->!s.isEmpty()).map(Long::parseLong).collect(Collectors.toList())";
             
-            case ARRAY_DOUBLE, LIST_DOUBLE -> 
+            case LIST_DOUBLE -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
                 ".map(String::trim).filter(s->!s.isEmpty()).map(Double::parseDouble).collect(Collectors.toList())";
             
-            case ARRAY_STRING, LIST_STRING -> 
+            case LIST_STRING -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
                 ".map(String::trim).map(s->s.replaceAll(\"^\\\"|\\\"$\", \"\")).collect(Collectors.toList())";
             
@@ -138,15 +159,18 @@ public class JavaCodeEmitter implements CodeEmitter{
             
             boolean isVoid = "void".equals(signature.returnType);
             if (!isVoid) {
-                code.append(String.format("        %s result = Result.%s(", signature.returnType, signature.methodName));
+                code.append("Result result = new Result();");
+                code.append(String.format("        %s res = result.%s(", signature.returnType, signature.methodName));
                 for (int i = 0; i < signature.params.size(); i++) {
                     code.append(signature.params.get(i).name);
                     if (i < signature.params.size() - 1) code.append(", ");
                 }
                 code.append(");\n");
-                code.append("        System.out.println(result);\n");
+                code.append("        System.out.println(res);\n");
+
             } else {
-                code.append(String.format("        Result.%s(", signature.methodName));
+                code.append("           Result result = new Result()");
+                code.append(String.format("        result.%s(", signature.methodName));
                 for (int i = 0; i < signature.params.size(); i++) {
                     code.append(signature.params.get(i).name);
                     if (i < signature.params.size() - 1) code.append(", ");

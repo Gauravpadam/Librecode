@@ -88,10 +88,6 @@ public class Problem {
         this.id = id;
     }
 
-
-    public void setOutputType(String outputType) {
-        this.outputType = outputType;
-    }
     
     public String getTitle() {
         return title;

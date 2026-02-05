@@ -8,7 +8,7 @@ import { defineLocalcodeTheme } from '../../styles/editor-theme';
  * Supports Java, Python, and JavaScript with syntax highlighting
  */
 function CodeEditor({ 
-  language = 'javascript', 
+  language = 'java', 
   value = '', 
   onChange,
   height = '100%',
@@ -16,6 +16,9 @@ function CodeEditor({
   className = ''
 }) {
   const editorRef = useRef(null);
+
+  console.log(value);
+  
 
   // Handle editor mount
   function handleEditorDidMount(editor, monaco) {
