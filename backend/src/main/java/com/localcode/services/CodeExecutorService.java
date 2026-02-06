@@ -201,6 +201,7 @@ public class CodeExecutorService {
         StringBuilder code = new StringBuilder();
 
         String harness = codeHarness.generate(request);
+        logger.info(harness);
         code.append(harness); // Harness
         code.append(request.getCode()); // Code
 

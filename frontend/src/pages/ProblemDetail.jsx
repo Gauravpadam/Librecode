@@ -41,7 +41,7 @@ function ProblemDetail() {
   // Load and save code from/to localStorage
   useEffect(() => {
     const savedCode = localStorage.getItem(`problem_${id}_${selectedLanguage}`);
-    if (savedCode) {
+    if (savedCode && savedCode.trim() != '') {
       setCode(savedCode);
     } else if (problem) {
       loadStarterCode();

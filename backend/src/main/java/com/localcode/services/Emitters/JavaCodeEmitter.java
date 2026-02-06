@@ -1,5 +1,6 @@
 package com.localcode.services.Emitters;
 import java.util.List;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 
 import com.localcode.services.MethodSignature;
@@ -39,6 +40,7 @@ public class JavaCodeEmitter implements CodeEmitter{
         case "long[]" -> DataType.ARRAY_LONG;
         case "double[]" -> DataType.ARRAY_DOUBLE;
         case "String[]" -> DataType.ARRAY_STRING;
+        case "char[]" -> DataType.ARRAY_CHAR;
 
         // lists (common variants)
         case "List<Integer>" -> DataType.LIST_INT;
@@ -80,20 +82,23 @@ public class JavaCodeEmitter implements CodeEmitter{
             // primitive arrays -> return primitive array types
             case ARRAY_INT -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
-                ".map(String::trim).filter(s->!s.isEmpty()).mapToInt(Integer::parseInt).toArray()";
+                ".map(String::trim).filter(stringz->!stringz.isEmpty()).mapToInt(Integer::parseInt).toArray()";
             
             case ARRAY_LONG -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
-                ".map(String::trim).filter(s->!s.isEmpty()).mapToLong(Long::parseLong).toArray()";
+                ".map(String::trim).filter(stringz->!stringz.isEmpty()).mapToLong(Long::parseLong).toArray()";
             
             case ARRAY_DOUBLE -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
-                ".map(String::trim).filter(s->!s.isEmpty()).mapToDouble(Double::parseDouble).toArray()";
+                ".map(String::trim).filter(stringz->!stringz.isEmpty()).mapToDouble(Double::parseDouble).toArray()";
             
             case ARRAY_STRING -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
-                ".map(String::trim).map(s->s.replaceAll(\"^\\\"|\\\"$\", \"\")).toArray(String[]::new)";
-            
+                ".map(String::trim).map(stringz->stringz.replaceAll(\"^\\\"|\\\"$\", \"\")).toArray(String[]::new)";
+
+            case ARRAY_CHAR -> 
+                "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
+                ".map(String::trim).map(stringz->stringz.replaceAll(\"^\\\"|\\\"$\", \"\")).toArray(char[]::new)";
             // list variants -> keep returning collections
             case LIST_INT -> 
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
@@ -165,11 +170,28 @@ public class JavaCodeEmitter implements CodeEmitter{
                     code.append(signature.params.get(i).name);
                     if (i < signature.params.size() - 1) code.append(", ");
                 }
+                DataType returnType = dataTypeMap(signature.returnType);
                 code.append(");\n");
-                code.append("        System.out.println(res);\n");
+                               if (returnType == DataType.ARRAY_INT
+                        || returnType == DataType.ARRAY_LONG
+                        || returnType == DataType.ARRAY_DOUBLE
+                        || returnType == DataType.ARRAY_STRING
+                        || returnType == DataType.ARRAY_CHAR) {
+                    code.append("        System.out.println(Arrays.toString(res).replace(\" \", \"\"));\n");
+                } else if (returnType == DataType.LIST_INT
+                        || returnType == DataType.LIST_LONG
+                        || returnType == DataType.LIST_DOUBLE
+                        || returnType == DataType.LIST_STRING
+                        || returnType == DataType.MATRIX_INT
+                        || returnType == DataType.MATRIX_LONG
+                        || returnType == DataType.MATRIX_STRING) {
+                    code.append("        System.out.println(res.toString().replace(\" \", \"\"));\n");
+                } else {
+                  code.append("        System.out.println(res);\n"); 
+                }
 
             } else {
-                code.append("           Result result = new Result()");
+                code.append("           Result result = new Result();");
                 code.append(String.format("        result.%s(", signature.methodName));
                 for (int i = 0; i < signature.params.size(); i++) {
                     code.append(signature.params.get(i).name);

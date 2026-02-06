@@ -18,6 +18,7 @@ public enum DataType{
     ARRAY_LONG,
     ARRAY_DOUBLE,
     ARRAY_STRING,
+    ARRAY_CHAR,
 
     // collections
     LIST_INT,
