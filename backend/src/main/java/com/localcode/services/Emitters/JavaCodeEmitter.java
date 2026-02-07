@@ -1,7 +1,8 @@
 package com.localcode.services.Emitters;
 import java.util.List;
-import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 import com.localcode.services.MethodSignature;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,10 @@ import com.localcode.services.Param;
 
 
 import com.localcode.services.DataType;
+
+// TODO: A bigger refactor would be needed, this could be harness builder and then I could implement some strategies for it.
+// TODO: Handle empty inputs. - DONE
+// TDOD: Handle cases where custom types are present (TreeNode etc.)
 
 @Component("JavaCodeEmitter")
 public class JavaCodeEmitter implements CodeEmitter{
@@ -53,10 +58,18 @@ public class JavaCodeEmitter implements CodeEmitter{
         case "List<String>" -> DataType.LIST_STRING;
         case "ArrayList<String>" -> DataType.LIST_STRING;
 
-        // matrices
-        case "int[][]" -> DataType.MATRIX_INT;
-        case "long[][]" -> DataType.MATRIX_LONG;
-        case "String[][]" -> DataType.MATRIX_STRING;
+        // 2D primitive arrays
+        case "int[][]" -> DataType.ARRAY_2D_INT;
+        case "long[][]" -> DataType.ARRAY_2D_LONG;
+        case "String[][]" -> DataType.ARRAY_2D_STRING;
+
+        // matrices (List<List<...>>)
+        case "List<List<Integer>>" -> DataType.MATRIX_INT;
+        case "ArrayList<List<Integer>>" -> DataType.MATRIX_INT;
+        case "List<List<Long>>" -> DataType.MATRIX_LONG;
+        case "ArrayList<List<Long>>" -> DataType.MATRIX_LONG;
+        case "List<List<String>>" -> DataType.MATRIX_STRING;
+        case "ArrayList<List<String>>" -> DataType.MATRIX_STRING;
 
         default -> throw new IllegalArgumentException("Unknown Java type: " + paramType);
     };
@@ -116,32 +129,12 @@ public class JavaCodeEmitter implements CodeEmitter{
                 "Arrays.stream(input.trim().substring(1, input.length()-1).split(\",\"))" +
                 ".map(String::trim).map(s->s.replaceAll(\"^\\\"|\\\"$\", \"\")).collect(Collectors.toList())";
             
-            case MATRIX_INT -> 
-                "(() -> { String tmp = input.trim().substring(1, input.trim().length()-1); " +
-                "List<List<Integer>> result = new ArrayList<>(); " +
-                "if (!tmp.isEmpty()) { String[] rows = tmp.split(\"\\\\],\\\\s*\\\\[\"); " +
-                "for (String r : rows) { r = r.replaceAll(\"^\\\\[|\\\\]$\", \"\"); " +
-                "List<Integer> row = new ArrayList<>(); " +
-                "for (String v : r.split(\",\")) if (!v.trim().isEmpty()) row.add(Integer.parseInt(v.trim())); " +
-                "result.add(row); } } return result; })()";
-            
-            case MATRIX_LONG -> 
-                "(() -> { String tmp = input.trim().substring(1, input.trim().length()-1); " +
-                "List<List<Long>> result = new ArrayList<>(); " +
-                "if (!tmp.isEmpty()) { String[] rows = tmp.split(\"\\\\],\\\\s*\\\\[\"); " +
-                "for (String r : rows) { r = r.replaceAll(\"^\\\\[|\\\\]$\", \"\"); " +
-                "List<Long> row = new ArrayList<>(); " +
-                "for (String v : r.split(\",\")) if (!v.trim().isEmpty()) row.add(Long.parseLong(v.trim())); " +
-                "result.add(row); } } return result; })()";
-            
-            case MATRIX_STRING -> 
-                "(() -> { String tmp = input.trim().substring(1, input.trim().length()-1); " +
-                "List<List<String>> result = new ArrayList<>(); " +
-                "if (!tmp.isEmpty()) { String[] rows = tmp.split(\"\\\\],\\\\s*\\\\[\"); " +
-                "for (String r : rows) { r = r.replaceAll(\"^\\\\[|\\\\]$\", \"\"); " +
-                "List<String> row = new ArrayList<>(); " +
-                "for (String v : r.split(\",\")) row.add(v.trim().replaceAll(\"^\\\"|\\\"$\", \"\")); " +
-                "result.add(row); } } return result; })()";
+            case ARRAY_2D_INT -> "parseIntArray2D(input)";
+            case ARRAY_2D_LONG -> "parseLongArray2D(input)";
+            case ARRAY_2D_STRING -> "parseStringArray2D(input)";
+            case MATRIX_INT -> "parseIntMatrix(input)";
+            case MATRIX_LONG -> "parseLongMatrix(input)";
+            case MATRIX_STRING -> "parseStringMatrix(input)";
             
             default -> "input.trim()";
         };
@@ -150,7 +143,7 @@ public class JavaCodeEmitter implements CodeEmitter{
 
     private String generateParamParsing(Param param, int index) {
             StringBuilder code = new StringBuilder();
-            code.append(String.format("        String input%d = scanner.nextLine();\n", index));
+            code.append(String.format("        String input%d = scanner.hasNextLine() ? scanner.nextLine() : \"\";\n", index));
             
             DataType dt = dataTypeMap(param.type);
             String parseExpr = generateInputParsing(dt).replace("input", "input" + index);
@@ -158,6 +151,128 @@ public class JavaCodeEmitter implements CodeEmitter{
             code.append(String.format("        %s %s = %s;\n", param.type, param.name, parseExpr));
             return code.toString();
         }
+    
+    
+    // TODO: Implementation of call by reference
+    // There is one crink here. If the problem says modify in place, we need to pass by reference in the method call.
+
+    private String generateHelperMethods(List<DataType> neededTypes) {
+        StringBuilder helpers = new StringBuilder();
+        
+        for (DataType dt : neededTypes) {
+            switch (dt) {
+                case ARRAY_2D_INT -> helpers.append("""
+                        private static int[][] parseIntArray2D(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<int[]> rows = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    rows.add(Arrays.stream(r.split(","))
+                                        .map(String::trim)
+                                        .filter(s -> !s.isEmpty())
+                                        .mapToInt(Integer::parseInt)
+                                        .toArray());
+                                }
+                            }
+                            return rows.toArray(new int[0][]);
+                        }
+                    """);
+                case ARRAY_2D_LONG -> helpers.append("""
+                        private static long[][] parseLongArray2D(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<long[]> rows = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    rows.add(Arrays.stream(r.split(","))
+                                        .map(String::trim)
+                                        .filter(s -> !s.isEmpty())
+                                        .mapToLong(Long::parseLong)
+                                        .toArray());
+                                }
+                            }
+                            return rows.toArray(new long[0][]);
+                        }
+                    """);
+                case ARRAY_2D_STRING -> helpers.append("""
+                        private static String[][] parseStringArray2D(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<String[]> rows = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    rows.add(Arrays.stream(r.split(","))
+                                        .map(String::trim)
+                                        .map(s -> s.replaceAll("^\\"|\\"$", ""))
+                                        .toArray(String[]::new));
+                                }
+                            }
+                            return rows.toArray(new String[0][]);
+                        }
+                    """);
+                case MATRIX_INT -> helpers.append("""
+                        private static List<List<Integer>> parseIntMatrix(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<List<Integer>> result = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    List<Integer> row = new ArrayList<>();
+                                    for (String v : r.split(",")) {
+                                        if (!v.trim().isEmpty()) row.add(Integer.parseInt(v.trim()));
+                                    }
+                                    result.add(row);
+                                }
+                            }
+                            return result;
+                        }
+                    """);
+                case MATRIX_LONG -> helpers.append("""
+                        private static List<List<Long>> parseLongMatrix(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<List<Long>> result = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    List<Long> row = new ArrayList<>();
+                                    for (String v : r.split(",")) {
+                                        if (!v.trim().isEmpty()) row.add(Long.parseLong(v.trim()));
+                                    }
+                                    result.add(row);
+                                }
+                            }
+                            return result;
+                        }
+                    """);
+                case MATRIX_STRING -> helpers.append("""
+                        private static List<List<String>> parseStringMatrix(String input) {
+                            String tmp = input.trim().substring(1, input.trim().length() - 1);
+                            List<List<String>> result = new ArrayList<>();
+                            if (!tmp.isEmpty()) {
+                                String[] parts = tmp.split("\\\\],\\\\s*\\\\[");
+                                for (String r : parts) {
+                                    r = r.replaceAll("^\\\\[|\\\\]$", "");
+                                    List<String> row = new ArrayList<>();
+                                    for (String v : r.split(",")) {
+                                        row.add(v.trim().replaceAll("^\\"|\\"$", ""));
+                                    }
+                                    result.add(row);
+                                }
+                            }
+                            return result;
+                        }
+                    """);
+                default -> {} // No helper needed
+            }
+        }
+        return helpers.toString();
+    }
 
     private String generateMethodCall(MethodSignature signature) {
             StringBuilder code = new StringBuilder();
@@ -173,22 +288,76 @@ public class JavaCodeEmitter implements CodeEmitter{
                 DataType returnType = dataTypeMap(signature.returnType);
                 code.append(");\n");
                                if (returnType == DataType.ARRAY_INT
-                        || returnType == DataType.ARRAY_LONG
-                        || returnType == DataType.ARRAY_DOUBLE
-                        || returnType == DataType.ARRAY_STRING
-                        || returnType == DataType.ARRAY_CHAR) {
-                    code.append("        System.out.println(Arrays.toString(res).replace(\" \", \"\"));\n");
-                } else if (returnType == DataType.LIST_INT
-                        || returnType == DataType.LIST_LONG
-                        || returnType == DataType.LIST_DOUBLE
-                        || returnType == DataType.LIST_STRING
-                        || returnType == DataType.MATRIX_INT
-                        || returnType == DataType.MATRIX_LONG
-                        || returnType == DataType.MATRIX_STRING) {
-                    code.append("        System.out.println(res.toString().replace(\" \", \"\"));\n");
-                } else {
-                  code.append("        System.out.println(res);\n"); 
-                }
+        || returnType == DataType.ARRAY_LONG
+        || returnType == DataType.ARRAY_DOUBLE
+        || returnType == DataType.ARRAY_CHAR) {
+
+    code.append("        System.out.println(Arrays.toString(res).replace(\" \", \"\"));\n");
+
+} else if (returnType == DataType.ARRAY_2D_INT || returnType == DataType.ARRAY_2D_LONG) {
+
+    code.append("""
+        System.out.print("[");
+        for (int i = 0; i < res.length; i++) {
+            System.out.print(Arrays.toString(res[i]).replace(" ", ""));
+            if (i != res.length - 1) System.out.print(",");
+        }
+        System.out.println("]");
+    """);
+
+} else if (returnType == DataType.ARRAY_2D_STRING) {
+
+    code.append("""
+        System.out.print("[");
+        for (int i = 0; i < res.length; i++) {
+            System.out.print("[");
+            for (int j = 0; j < res[i].length; j++) {
+                System.out.print("\\"" + res[i][j] + "\\"");
+                if (j != res[i].length - 1) System.out.print(",");
+            }
+            System.out.print("]");
+            if (i != res.length - 1) System.out.print(",");
+        }
+        System.out.println("]");
+    """);
+
+} else if (returnType == DataType.ARRAY_STRING) {
+
+    // ["a","b","c"]
+    code.append("""
+        System.out.print("[");
+        for (int i = 0; i < res.length; i++) {
+            System.out.print("\\"" + res[i] + "\\"");
+            if (i != res.length - 1) System.out.print(",");
+        }
+        System.out.println("]");
+    """);
+
+} else if (returnType == DataType.LIST_STRING) {
+
+    // ["1","2","Fizz"]
+    code.append("""
+        System.out.print("[");
+        for (int i = 0; i < res.size(); i++) {
+            System.out.print("\\"" + res.get(i) + "\\"");
+            if (i != res.size() - 1) System.out.print(",");
+        }
+        System.out.println("]");
+    """);
+
+} else if (returnType == DataType.LIST_INT
+        || returnType == DataType.LIST_LONG
+        || returnType == DataType.LIST_DOUBLE
+        || returnType == DataType.MATRIX_INT
+        || returnType == DataType.MATRIX_LONG
+        || returnType == DataType.MATRIX_STRING) {
+
+    code.append("        System.out.println(res.toString().replace(\" \", \"\"));\n");
+
+} else {
+
+    code.append("        System.out.println(res);\n");
+}
 
             } else {
                 code.append("           Result result = new Result();");
@@ -208,8 +377,24 @@ public class JavaCodeEmitter implements CodeEmitter{
 
         MethodSignature signature = parseStarterCode(methodToCall);
 
+        // Collect types that need helper methods
+        Set<DataType> neededHelpers = new LinkedHashSet<>();
+        for (Param p : signature.params) {
+            DataType dt = dataTypeMap(p.type);
+            if (dt == DataType.ARRAY_2D_INT || dt == DataType.ARRAY_2D_LONG || dt == DataType.ARRAY_2D_STRING
+                || dt == DataType.MATRIX_INT || dt == DataType.MATRIX_LONG || dt == DataType.MATRIX_STRING) {
+                neededHelpers.add(dt);
+            }
+        }
+
         StringBuilder out = new StringBuilder();
         out.append("public class Solution {\n");
+
+        // Generate helper methods if needed
+        if (!neededHelpers.isEmpty()) {
+            out.append(generateHelperMethods(new ArrayList<>(neededHelpers)));
+        }
+
         out.append("    public static void main(String[] args) {\n");
         out.append("        Scanner scanner = new Scanner(System.in);\n\n");
 

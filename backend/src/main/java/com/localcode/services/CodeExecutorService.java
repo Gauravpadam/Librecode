@@ -38,6 +38,9 @@ import java.util.concurrent.*;
 /**
  * Service for executing code in isolated Docker containers.
  */
+
+// TODO: Handle cases where input is empty. - DONE
+
 @Service
 public class CodeExecutorService {
     
@@ -237,7 +240,8 @@ public class CodeExecutorService {
             .exec();
         
         // Write input file if provided
-        if (request.getInput() != null && !request.getInput().isEmpty()) {
+        if (request.getInput() != null) {
+            // Let empty pass. We handle it in scanner
             File inputFile = new File(tempDir.toFile(), "input.txt");
             try (FileWriter writer = new FileWriter(inputFile)) {
                 writer.write(request.getInput());

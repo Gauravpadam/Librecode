@@ -16,10 +16,7 @@ function CodeEditor({
   className = ''
 }) {
   const editorRef = useRef(null);
-
-  console.log(value);
   
-
   // Handle editor mount
   function handleEditorDidMount(editor, monaco) {
     editorRef.current = editor;
