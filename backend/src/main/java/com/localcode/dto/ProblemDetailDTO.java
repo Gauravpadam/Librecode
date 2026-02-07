@@ -63,6 +63,7 @@ public class ProblemDetailDTO {
         return description;
     }
     
+    
     public void setDescription(String description) {
         this.description = description;
     }
@@ -138,4 +139,7 @@ public class ProblemDetailDTO {
     public void setTags(String[] tags) {
         this.tags = tags;
     }
+
+
+
 }

@@ -24,7 +24,7 @@ public class Problem {
     
     @Column(columnDefinition = "TEXT")
     private String description;
-    
+
     @Column(columnDefinition = "TEXT")
     private String constraints;
     
@@ -87,6 +87,7 @@ public class Problem {
     public void setId(Long id) {
         this.id = id;
     }
+
     
     public String getTitle() {
         return title;
@@ -95,7 +96,8 @@ public class Problem {
     public void setTitle(String title) {
         this.title = title;
     }
-    
+
+
     public String getDescription() {
         return description;
     }

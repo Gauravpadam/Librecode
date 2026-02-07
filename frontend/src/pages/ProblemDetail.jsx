@@ -41,7 +41,7 @@ function ProblemDetail() {
   // Load and save code from/to localStorage
   useEffect(() => {
     const savedCode = localStorage.getItem(`problem_${id}_${selectedLanguage}`);
-    if (savedCode) {
+    if (savedCode && savedCode.trim() != '') {
       setCode(savedCode);
     } else if (problem) {
       loadStarterCode();
@@ -151,13 +151,15 @@ function ProblemDetail() {
 
   // Get starter code based on language
   const getStarterCode = (problemData, language) => {
+    console.log(problemData);
+    
     switch (language) {
       case 'java':
-        return problemData.starterCodeJava || '// Write your Java code here\n';
+        return problemData.starterCode.java || '// Write your Java code here\n';
       case 'python':
-        return problemData.starterCodePython || '# Write your Python code here\n';
+        return problemData.starterCode.python || '# Write your Python code here\n';
       case 'javascript':
-        return problemData.starterCodeJavascript || '// Write your JavaScript code here\n';
+        return problemData.starterCode.javascript || '// Write your JavaScript code here\n';
       default:
         return '';
     }

@@ -155,7 +155,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.EASY);
         problem.setTimeLimitMs(2000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int[] twoSum(int[] nums, int target) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def two_sum(nums, target):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function twoSum(nums, target) {\n    // Your code here\n}");
         
@@ -189,7 +189,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.EASY);
         problem.setTimeLimitMs(2000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public void reverseString(char[] s) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public void reverseString(char[] s) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def reverse_string(s):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function reverseString(s) {\n    // Your code here\n}");
         
@@ -224,7 +224,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.EASY);
         problem.setTimeLimitMs(2000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public boolean isPalindrome(int x) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public boolean isPalindrome(int x) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def is_palindrome(x):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function isPalindrome(x) {\n    // Your code here\n}");
         
@@ -266,7 +266,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.EASY);
         problem.setTimeLimitMs(2000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public List<String> fizzBuzz(int n) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public List<String> fizzBuzz(int n) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def fizz_buzz(n):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function fizzBuzz(n) {\n    // Your code here\n}");
         
@@ -308,7 +308,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.EASY);
         problem.setTimeLimitMs(2000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public boolean isValid(String s) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public boolean isValid(String s) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def is_valid(s):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function isValid(s) {\n    // Your code here\n}");
         
@@ -353,7 +353,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.MEDIUM);
         problem.setTimeLimitMs(3000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int maxSubArray(int[] nums) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int maxSubArray(int[] nums) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def max_sub_array(nums):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function maxSubArray(nums) {\n    // Your code here\n}");
         
@@ -395,7 +395,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.MEDIUM);
         problem.setTimeLimitMs(3000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int lengthOfLongestSubstring(String s) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def length_of_longest_substring(s):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function lengthOfLongestSubstring(s) {\n    // Your code here\n}");
         
@@ -433,7 +433,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.MEDIUM);
         problem.setTimeLimitMs(3000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int maxArea(int[] height) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int maxArea(int[] height) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def max_area(height):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function maxArea(height) {\n    // Your code here\n}");
         
@@ -471,7 +471,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.MEDIUM);
         problem.setTimeLimitMs(3000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def level_order(root):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function levelOrder(root) {\n    // Your code here\n}");
         
@@ -507,7 +507,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.MEDIUM);
         problem.setTimeLimitMs(3000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int[][] merge(int[][] intervals) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int[][] merge(int[][] intervals) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def merge(intervals):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function merge(intervals) {\n    // Your code here\n}");
         
@@ -552,7 +552,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.HARD);
         problem.setTimeLimitMs(5000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public boolean exist(char[][] board, String word) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public boolean exist(char[][] board, String word) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def exist(board, word):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function exist(board, word) {\n    // Your code here\n}");
         
@@ -592,7 +592,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.HARD);
         problem.setTimeLimitMs(5000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def find_median_sorted_arrays(nums1, nums2):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function findMedianSortedArrays(nums1, nums2) {\n    // Your code here\n}");
         
@@ -627,7 +627,7 @@ public class DataSeeder {
         problem.setDifficulty(Difficulty.HARD);
         problem.setTimeLimitMs(5000);
         problem.setMemoryLimitMb(256);
-        problem.setStarterCodeJava("class Solution {\n    public int trap(int[] height) {\n        // Your code here\n    }\n}");
+        problem.setStarterCodeJava("class Result {\n    public int trap(int[] height) {\n        // Your code here\n    }\n}");
         problem.setStarterCodePython("def trap(height):\n    # Your code here\n    pass");
         problem.setStarterCodeJavascript("function trap(height) {\n    // Your code here\n}");
         
