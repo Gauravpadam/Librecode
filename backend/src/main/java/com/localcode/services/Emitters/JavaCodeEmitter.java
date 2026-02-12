@@ -274,9 +274,63 @@ public class JavaCodeEmitter implements CodeEmitter{
         return helpers.toString();
     }
 
+    private String generateOutputParsing(DataType returnType) {
+        return switch (returnType) {
+            case ARRAY_INT, ARRAY_LONG, ARRAY_DOUBLE, ARRAY_CHAR ->
+                "        System.out.println(Arrays.toString(res).replace(\" \", \"\"));\n";
+
+            case ARRAY_2D_INT, ARRAY_2D_LONG -> """
+                System.out.print("[");
+                for (int i = 0; i < res.length; i++) {
+                    System.out.print(Arrays.toString(res[i]).replace(" ", ""));
+                    if (i != res.length - 1) System.out.print(",");
+                }
+                System.out.println("]");
+            """;
+
+            case ARRAY_2D_STRING -> """
+                System.out.print("[");
+                for (int i = 0; i < res.length; i++) {
+                    System.out.print("[");
+                    for (int j = 0; j < res[i].length; j++) {
+                        System.out.print("\\\"" + res[i][j] + "\\\"");
+                        if (j != res[i].length - 1) System.out.print(",");
+                    }
+                    System.out.print("]");
+                    if (i != res.length - 1) System.out.print(",");
+                }
+                System.out.println("]");
+            """;
+
+            case ARRAY_STRING -> """
+                System.out.print("[");
+                for (int i = 0; i < res.length; i++) {
+                    System.out.print("\\\"" + res[i] + "\\\"");
+                    if (i != res.length - 1) System.out.print(",");
+                }
+                System.out.println("]");
+            """;
+
+            case LIST_STRING -> """
+                System.out.print("[");
+                for (int i = 0; i < res.size(); i++) {
+                    System.out.print("\\\"" + res.get(i) + "\\\"");
+                    if (i != res.size() - 1) System.out.print(",");
+                }
+                System.out.println("]");
+            """;
+
+            case LIST_INT, LIST_LONG, LIST_DOUBLE, MATRIX_INT, MATRIX_LONG, MATRIX_STRING ->
+                "        System.out.println(res.toString().replace(\" \", \"\"));\n";
+
+            default -> "        System.out.println(res);\n";
+        };
+    }
+
     private String generateMethodCall(MethodSignature signature) {
             StringBuilder code = new StringBuilder();
             
+            // void vs normal returntype
             boolean isVoid = "void".equals(signature.returnType);
             if (!isVoid) {
                 code.append("Result result = new Result();");
@@ -285,80 +339,8 @@ public class JavaCodeEmitter implements CodeEmitter{
                     code.append(signature.params.get(i).name);
                     if (i < signature.params.size() - 1) code.append(", ");
                 }
-                DataType returnType = dataTypeMap(signature.returnType);
+
                 code.append(");\n");
-                               if (returnType == DataType.ARRAY_INT
-        || returnType == DataType.ARRAY_LONG
-        || returnType == DataType.ARRAY_DOUBLE
-        || returnType == DataType.ARRAY_CHAR) {
-
-    code.append("        System.out.println(Arrays.toString(res).replace(\" \", \"\"));\n");
-
-} else if (returnType == DataType.ARRAY_2D_INT || returnType == DataType.ARRAY_2D_LONG) {
-
-    code.append("""
-        System.out.print("[");
-        for (int i = 0; i < res.length; i++) {
-            System.out.print(Arrays.toString(res[i]).replace(" ", ""));
-            if (i != res.length - 1) System.out.print(",");
-        }
-        System.out.println("]");
-    """);
-
-} else if (returnType == DataType.ARRAY_2D_STRING) {
-
-    code.append("""
-        System.out.print("[");
-        for (int i = 0; i < res.length; i++) {
-            System.out.print("[");
-            for (int j = 0; j < res[i].length; j++) {
-                System.out.print("\\"" + res[i][j] + "\\"");
-                if (j != res[i].length - 1) System.out.print(",");
-            }
-            System.out.print("]");
-            if (i != res.length - 1) System.out.print(",");
-        }
-        System.out.println("]");
-    """);
-
-} else if (returnType == DataType.ARRAY_STRING) {
-
-    // ["a","b","c"]
-    code.append("""
-        System.out.print("[");
-        for (int i = 0; i < res.length; i++) {
-            System.out.print("\\"" + res[i] + "\\"");
-            if (i != res.length - 1) System.out.print(",");
-        }
-        System.out.println("]");
-    """);
-
-} else if (returnType == DataType.LIST_STRING) {
-
-    // ["1","2","Fizz"]
-    code.append("""
-        System.out.print("[");
-        for (int i = 0; i < res.size(); i++) {
-            System.out.print("\\"" + res.get(i) + "\\"");
-            if (i != res.size() - 1) System.out.print(",");
-        }
-        System.out.println("]");
-    """);
-
-} else if (returnType == DataType.LIST_INT
-        || returnType == DataType.LIST_LONG
-        || returnType == DataType.LIST_DOUBLE
-        || returnType == DataType.MATRIX_INT
-        || returnType == DataType.MATRIX_LONG
-        || returnType == DataType.MATRIX_STRING) {
-
-    code.append("        System.out.println(res.toString().replace(\" \", \"\"));\n");
-
-} else {
-
-    code.append("        System.out.println(res);\n");
-}
-
             } else {
                 code.append("           Result result = new Result();");
                 code.append(String.format("        result.%s(", signature.methodName));
@@ -372,11 +354,9 @@ public class JavaCodeEmitter implements CodeEmitter{
             return code.toString();
         }
 
-    @Override
-     public String generateTailCode(String methodToCall) {
 
-        MethodSignature signature = parseStarterCode(methodToCall);
 
+    private Set<DataType> findNeededMatrixParsingHelpers(MethodSignature signature){
         // Collect types that need helper methods
         Set<DataType> neededHelpers = new LinkedHashSet<>();
         for (Param p : signature.params) {
@@ -387,30 +367,81 @@ public class JavaCodeEmitter implements CodeEmitter{
             }
         }
 
-        StringBuilder out = new StringBuilder();
-        out.append("public class Solution {\n");
+        return neededHelpers;
+    }
 
-        // Generate helper methods if needed
+    private String addMatrixParsingHelpers(MethodSignature signature){
+        Set<DataType> neededHelpers = findNeededMatrixParsingHelpers(signature);
+
+        StringBuilder matrixParsers = new StringBuilder();
+
+         // Generate helper methods if needed
         if (!neededHelpers.isEmpty()) {
-            out.append(generateHelperMethods(new ArrayList<>(neededHelpers)));
+            matrixParsers.append(generateHelperMethods(new ArrayList<>(neededHelpers)));
         }
 
-        out.append("    public static void main(String[] args) {\n");
-        out.append("        Scanner scanner = new Scanner(System.in);\n\n");
+        return matrixParsers.toString();
+    }
+
+    // start main
+        // declarations*
+        // scanner
+        // input parsers
+        // method call*
+        // output parsing
+    
+
+    private String addMainMethod(MethodSignature signature){
+        StringBuilder mainMethod = new StringBuilder();
+        mainMethod.append("    public static void main(String[] args) {\n");
+        mainMethod.append("        Scanner scanner = new Scanner(System.in);\n\n");
 
         // Read and parse each parameter
         for (int i = 0; i < signature.params.size(); i++) {
-            out.append(generateParamParsing(signature.params.get(i), i));
+            mainMethod.append(generateParamParsing(signature.params.get(i), i));
         }
 
-        out.append("\n");
+        // clean code go brrrrrr
+        mainMethod.append("\n");
 
         // Call method and handle output
-        out.append(generateMethodCall(signature));
+        mainMethod.append(generateMethodCall(signature));
 
-        out.append("        scanner.close();\n");
-        out.append("    }\n");
-        out.append("}\n");
+        // handle output
+        mainMethod.append(generateOutputParsing(dataTypeMap(signature.returnType)));
+
+        mainMethod.append("        scanner.close();\n");
+        mainMethod.append("    }\n");
+
+        return mainMethod.toString();
+    }
+
+    // public clsas Solution {
+        // helper methods
+        // custom datatype classes*
+            // start main
+                // declarations*
+                // scanner
+                // input parsers
+                // method call*
+                // output parsing
+            // end main
+    // }
+    @Override
+    public String generateTailCode(String methodToCall) {
+
+
+        MethodSignature signature = parseStarterCode(methodToCall);
+
+
+        StringBuilder out = new StringBuilder();
+        out.append("public class Solution {\n");
+
+        // Matrix parsing helpers
+        out.append(addMatrixParsingHelpers(signature));
+
+        // main function
+        out.append(addMainMethod(signature));
 
         return out.toString();
     }
