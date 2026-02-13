@@ -391,15 +391,26 @@ public class JavaCodeEmitter implements CodeEmitter{
         // output parsing
     
 
+    private String addInputParsers(List<Param> params){
+
+        StringBuilder inputParsers = new StringBuilder();
+
+             // Read and parse each parameter
+        for (int i = 0; i < params.size(); i++) {
+            inputParsers.append(generateParamParsing(params.get(i), i));
+        }
+
+        return inputParsers.toString();
+    }
+
     private String addMainMethod(MethodSignature signature){
         StringBuilder mainMethod = new StringBuilder();
         mainMethod.append("    public static void main(String[] args) {\n");
         mainMethod.append("        Scanner scanner = new Scanner(System.in);\n\n");
 
-        // Read and parse each parameter
-        for (int i = 0; i < signature.params.size(); i++) {
-            mainMethod.append(generateParamParsing(signature.params.get(i), i));
-        }
+
+        // Input parsers
+        mainMethod.append(addInputParsers(signature.params));
 
         // clean code go brrrrrr
         mainMethod.append("\n");
