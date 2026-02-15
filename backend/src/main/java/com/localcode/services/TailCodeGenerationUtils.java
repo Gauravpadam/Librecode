@@ -345,4 +345,64 @@ public final class TailCodeGenerationUtils {
 
         params.add(new Param(type, name));
     }
+
+    public static String getCustomDataTypeClass(String dataType) {
+        return switch (dataType) {
+            // TreeNode - binary tree
+            case "TreeNode" -> """
+                    static class TreeNode {
+                        int val;
+                        TreeNode left;
+                        TreeNode right;
+                        TreeNode() {}
+                        TreeNode(int val) { this.val = val; }
+                        TreeNode(int val, TreeNode left, TreeNode right) {
+                            this.val = val;
+                            this.left = left;
+                            this.right = right;
+                        }
+                    }
+                """;
+
+            // ListNode - linked list
+            case "ListNode" -> """
+                    static class ListNode {
+                        int val;
+                        ListNode next;
+                        ListNode() {}
+                        ListNode(int val) { this.val = val; }
+                        ListNode(int val, ListNode next) {
+                            this.val = val;
+                            this.next = next;
+                        }
+                    }
+                """;
+
+            // Node - N-ary tree or graph node
+            case "Node" -> """
+                    static class Node {
+                        public int val;
+                        public List<Node> children;
+                        
+                        public Node() {}
+                        
+                        public Node(int _val) {
+                            val = _val;
+                        }
+                        
+                        public Node(int _val, List<Node> _children) {
+                            val = _val;
+                            children = _children;
+                        }
+                    }
+                """;
+
+            // Default fallback for unknown custom types
+            default -> String.format("""
+                    static class %s {
+                        // TODO: Define fields for %s
+                    }
+                """, dataType, dataType);
+        };
+    }
 }

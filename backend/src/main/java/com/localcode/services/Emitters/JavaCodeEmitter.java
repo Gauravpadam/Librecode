@@ -5,10 +5,14 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 
 import com.localcode.services.MethodSignature;
+
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Component;
 
 import com.localcode.services.Param;
 import com.localcode.services.TailCodeGenerationUtils;
+import com.localcode.services.Emitters.ParamParsers.ParamParser;
+import com.localcode.services.Emitters.ParamParsers.ParamParsers;
 import com.localcode.services.DataType;
 
 // TODO: A bigger refactor would be needed, this could be harness builder and then I could implement some strategies for it.
@@ -18,18 +22,19 @@ import com.localcode.services.DataType;
 @Component("JavaCodeEmitter")
 public class JavaCodeEmitter implements CodeEmitter{
 
+    @Override
+    public String generateHeadCode(){
+        return TailCodeGenerationUtils.generateImports();
+    }
 
-    
 
-
-    private String generateParamParsing(Param param, int index) {
+    private String generateParamParsing(ParamParser paramParser, String paramType, String paramName, int index) {
             StringBuilder code = new StringBuilder();
             code.append(String.format("        String input%d = scanner.hasNextLine() ? scanner.nextLine() : \"\";\n", index));
             
-            DataType dt = TailCodeGenerationUtils.dataTypeMap(param.type);
-            String parseExpr = TailCodeGenerationUtils.generateInputParsing(dt).replace("input", "input" + index);
+            String parseExpr = paramParser.generateInputParsing().replace("input", "input" + index);
             
-            code.append(String.format("        %s %s = %s;\n", param.type, param.name, parseExpr));
+            code.append(String.format("        %s %s = %s;\n", paramType, paramName, parseExpr));
             return code.toString();
         }
     
@@ -38,26 +43,26 @@ public class JavaCodeEmitter implements CodeEmitter{
     // There is one crink here. If the problem says modify in place, we need to pass by reference in the method call.
 
     
-    private String generateMethodCall(MethodSignature signature) {
+    private String generateMethodCall(String returnType, String methodName, List<Param> params) {
             StringBuilder code = new StringBuilder();
             
             // void vs normal returntype
-            boolean isVoid = "void".equals(signature.returnType);
+            boolean isVoid = "void".equals(returnType);
             if (!isVoid) {
                 code.append("Result result = new Result();");
-                code.append(String.format("        %s res = result.%s(", signature.returnType, signature.methodName));
-                for (int i = 0; i < signature.params.size(); i++) {
-                    code.append(signature.params.get(i).name);
-                    if (i < signature.params.size() - 1) code.append(", ");
+                code.append(String.format("        %s res = result.%s(", returnType, methodName));
+                for (int i = 0; i < params.size(); i++) {
+                    code.append(params.get(i).name);
+                    if (i < params.size() - 1) code.append(", ");
                 }
 
                 code.append(");\n");
             } else {
                 code.append("           Result result = new Result();");
-                code.append(String.format("        result.%s(", signature.methodName));
-                for (int i = 0; i < signature.params.size(); i++) {
-                    code.append(signature.params.get(i).name);
-                    if (i < signature.params.size() - 1) code.append(", ");
+                code.append(String.format("        result.%s(", methodName));
+                for (int i = 0; i < params.size(); i++) {
+                    code.append(params.get(i).name);
+                    if (i < params.size() - 1) code.append(", ");
                 }
                 code.append(");\n");
             }
@@ -65,34 +70,21 @@ public class JavaCodeEmitter implements CodeEmitter{
             return code.toString();
         }
 
+    private List<ParamParser> gatherParamParsers(List<Param> params){
 
+        List<ParamParser> parserList = new ArrayList<>();
 
-    private Set<DataType> findNeededMatrixParsingHelpers(MethodSignature signature){
-        // Collect types that need helper methods
-        Set<DataType> neededHelpers = new LinkedHashSet<>();
-        for (Param p : signature.params) {
+        for (Param p : params) {
             DataType dt = TailCodeGenerationUtils.dataTypeMap(p.type);
-            if (dt == DataType.ARRAY_2D_INT || dt == DataType.ARRAY_2D_LONG || dt == DataType.ARRAY_2D_STRING
-                || dt == DataType.MATRIX_INT || dt == DataType.MATRIX_LONG || dt == DataType.MATRIX_STRING) {
-                neededHelpers.add(dt);
+            ParamParser parser = ParamParsers.getParser(dt);
+            if (parser != null) {
+                parserList.add(parser);
             }
         }
-
-        return neededHelpers;
+        
+        return parserList;
     }
 
-    private String addMatrixParsingHelpers(MethodSignature signature){
-        Set<DataType> neededHelpers = findNeededMatrixParsingHelpers(signature);
-
-        StringBuilder matrixParsers = new StringBuilder();
-
-         // Generate helper methods if needed
-        if (!neededHelpers.isEmpty()) {
-            matrixParsers.append(TailCodeGenerationUtils.generateHelperMethods(new ArrayList<>(neededHelpers)));
-        }
-
-        return matrixParsers.toString();
-    }
 
     // start main
         // declarations*
@@ -102,40 +94,79 @@ public class JavaCodeEmitter implements CodeEmitter{
         // output parsing
     
 
-    private String addInputParsers(List<Param> params){
+    private String addInputParsers(List<ParamParser> paramParsers, List<Param> params){
 
         StringBuilder inputParsers = new StringBuilder();
 
              // Read and parse each parameter
-        for (int i = 0; i < params.size(); i++) {
-            inputParsers.append(generateParamParsing(params.get(i), i));
+        for (int i = 0; i < paramParsers.size(); i++) {
+            inputParsers.append(generateParamParsing(paramParsers.get(i), params.get(i).type, params.get(i).getName(), i));
         }
 
         return inputParsers.toString();
     }
 
-    private String addMainMethod(MethodSignature signature){
+    private String addOutputFormatters(List<ParamParser> paramParsers){
+        StringBuilder outputFormatters = new StringBuilder();
+
+        for (ParamParser paramParser : paramParsers){
+            outputFormatters.append(paramParser.generateOutputFormatting());
+        }
+
+        return outputFormatters.toString();
+    }
+
+    private String addMainMethod(List<ParamParser> paramParsers, MethodSignature signature){
         StringBuilder mainMethod = new StringBuilder();
         mainMethod.append("    public static void main(String[] args) {\n");
         mainMethod.append("        Scanner scanner = new Scanner(System.in);\n\n");
 
 
         // Input parsers
-        mainMethod.append(addInputParsers(signature.params));
+        mainMethod.append(addInputParsers(paramParsers, signature.params));
 
         // clean code go brrrrrr
         mainMethod.append("\n");
 
         // Call method and handle output
-        mainMethod.append(generateMethodCall(signature));
+        mainMethod.append(generateMethodCall(signature.returnType, signature.methodName, signature.params));
 
         // handle output
-        mainMethod.append(TailCodeGenerationUtils.generateOutputParsing(TailCodeGenerationUtils.dataTypeMap(signature.returnType)));
+        mainMethod.append(addOutputFormatters(paramParsers));
 
         mainMethod.append("        scanner.close();\n");
         mainMethod.append("    }\n");
 
         return mainMethod.toString();
+    }
+
+    // TODO: Extend ParamParser to generate custom datatype classes
+    private String addCustomDataTypeClasses(List<ParamParser> paramParsers){
+        // StringBuilder classes = new StringBuilder();
+        
+        // Set<String> addedClasses = new LinkedHashSet<>();
+        // for (ParamParser paramParser : paramParsers){
+        //     String classDef = paramParser.generateCustomDataTypeClass();
+        //     if (!classDef.isEmpty() && !addedClasses.contains(classDef)){
+        //         classes.append(classDef).append("\n");
+        //         addedClasses.add(classDef);
+        //     }
+        // }
+
+        // return classes.toString();
+
+        return "";
+    }
+
+    private String addMatrixParsingHelpers(List<ParamParser> paramParsers){
+        StringBuilder helpers = new StringBuilder();
+        
+        for (ParamParser paramParser : paramParsers){
+            helpers.append(paramParser.generateHelperMethod());
+        }
+
+        return helpers.toString();
+            
     }
 
     // public clsas Solution {
@@ -152,18 +183,22 @@ public class JavaCodeEmitter implements CodeEmitter{
     @Override
     public String generateTailCode(String methodToCall) {
 
-
         MethodSignature signature = TailCodeGenerationUtils.parseStarterCode(methodToCall);
+        List<ParamParser> paramParsers = gatherParamParsers(signature.params);
 
 
         StringBuilder out = new StringBuilder();
         out.append("public class Solution {\n");
 
-        // Matrix parsing helpers
-        out.append(addMatrixParsingHelpers(signature));
+        // matrix helpers
+        out.append(addMatrixParsingHelpers(paramParsers));
+
+        // custom datatypes
+        out.append(addCustomDataTypeClasses(paramParsers));
+        
 
         // main function
-        out.append(addMainMethod(signature));
+        out.append(addMainMethod(paramParsers, signature));
 
         return out.toString();
     }
